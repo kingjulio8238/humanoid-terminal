@@ -189,9 +189,10 @@ const LEGEND_COUNTRIES = [
 interface SupplyChainGraphProps {
   onNodeSelect: (id: string) => void;
   countryFilter: string | null;
+  highlightedIds?: Set<string> | null;
 }
 
-export default function SupplyChainGraph({ onNodeSelect, countryFilter }: SupplyChainGraphProps) {
+export default function SupplyChainGraph({ onNodeSelect, countryFilter, highlightedIds }: SupplyChainGraphProps) {
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
   // Compute layout once
@@ -229,7 +230,8 @@ export default function SupplyChainGraph({ onNodeSelect, countryFilter }: Supply
   const { nodes, edges } = useMemo(() => {
     const nodes: Node[] = companies.map((c) => {
       const pos = positions[c.id] || { x: 0, y: 0 };
-      const dim = (connectedIds !== null && !connectedIds.has(c.id)) ||
+      const dim = (highlightedIds && highlightedIds.size > 0 && !highlightedIds.has(c.id)) ||
+        (connectedIds !== null && !connectedIds.has(c.id)) ||
         (countryFilter !== null && getCountryGroup(c.country) !== countryFilter);
 
       return {
@@ -251,17 +253,20 @@ export default function SupplyChainGraph({ onNodeSelect, countryFilter }: Supply
     });
 
     const edges: Edge[] = relationships.map((r) => {
-      const isHighlighted = focusedId !== null && (r.from === focusedId || r.to === focusedId);
+      const isFocusHighlighted = focusedId !== null && (r.from === focusedId || r.to === focusedId);
+      const isQueryHighlighted = highlightedIds && highlightedIds.size > 0 && highlightedIds.has(r.from) && highlightedIds.has(r.to);
+      const isHighlighted = isFocusHighlighted || isQueryHighlighted;
+      const isDimmed = (highlightedIds && highlightedIds.size > 0 && !isQueryHighlighted) || (connectedIds && !isFocusHighlighted);
       return {
         id: r.id,
         source: r.from,
         target: r.to,
-        animated: isHighlighted,
+        animated: isFocusHighlighted,
         label: isHighlighted ? r.component : undefined,
         style: {
           stroke: isHighlighted ? '#1a1a1a' : '#d5d0c8',
           strokeWidth: isHighlighted ? 2 : (r.bomPercent ? Math.max(1, r.bomPercent / 20) : 0.8),
-          opacity: connectedIds && !isHighlighted ? 0.15 : 1,
+          opacity: isDimmed ? 0.15 : 1,
         },
         labelStyle: {
           fill: '#6b6b6b',
@@ -276,7 +281,7 @@ export default function SupplyChainGraph({ onNodeSelect, countryFilter }: Supply
     });
 
     return { nodes, edges };
-  }, [positions, edgeCounts, focusedId, connectedIds, countryFilter]);
+  }, [positions, edgeCounts, focusedId, connectedIds, countryFilter, highlightedIds]);
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {

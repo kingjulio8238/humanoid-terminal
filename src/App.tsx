@@ -648,6 +648,10 @@ export default function App() {
   const [thesis, setThesis] = useState<string | null>(null);
   const [thesisLoading, setThesisLoading] = useState(false);
   const thesisCache = useRef<Map<string, string>>(new Map());
+  const [graphQuery, setGraphQuery] = useState('');
+  const [graphHighlightIds, setGraphHighlightIds] = useState<Set<string> | null>(null);
+  const [graphAnswer, setGraphAnswer] = useState<string | null>(null);
+  const [graphQuerying, setGraphQuerying] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [nlQuery, setNlQuery] = useState('');
@@ -1650,9 +1654,56 @@ export default function App() {
         {/* Network tab */}
         {activeTab === 'network' && (
           <div className="network-view">
+            <div className="network-controls">
+              <input
+                className="nl-query-input"
+                type="text"
+                placeholder="Ask about the network... e.g. &quot;Who supplies Tesla?&quot;"
+                value={graphQuery}
+                disabled={graphQuerying}
+                onChange={(e) => setGraphQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setGraphQuery('');
+                    setGraphHighlightIds(null);
+                    setGraphAnswer(null);
+                  }
+                  if (e.key === 'Enter' && graphQuery.trim() && !graphQuerying) {
+                    setGraphQuerying(true);
+                    setGraphAnswer(null);
+                    fetch('/api/graph-query', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        query: graphQuery.trim(),
+                        nodes: companies.map((c) => ({ id: c.id, name: c.name, country: c.country, type: c.type })),
+                        edges: relationships.map((r) => ({ from: r.from, to: r.to, component: r.component })),
+                      }),
+                    })
+                      .then((r) => r.json())
+                      .then((d) => {
+                        if (d.highlightIds) setGraphHighlightIds(new Set(d.highlightIds));
+                        if (d.answer) setGraphAnswer(d.answer);
+                      })
+                      .catch(() => {})
+                      .finally(() => setGraphQuerying(false));
+                  }
+                }}
+              />
+              {graphQuerying && <span className="nl-query-status">Querying...</span>}
+              {graphHighlightIds && (
+                <button className="cut-reset" onClick={() => {
+                  setGraphQuery('');
+                  setGraphHighlightIds(null);
+                  setGraphAnswer(null);
+                }}>Clear</button>
+              )}
+            </div>
+            {graphAnswer && <div className="network-answer">{graphAnswer}</div>}
             <SupplyChainGraph
               onNodeSelect={handleSelectCompany}
               countryFilter={countryFilter}
+              highlightedIds={graphHighlightIds}
             />
           </div>
         )}
