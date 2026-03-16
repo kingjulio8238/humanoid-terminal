@@ -2689,3 +2689,130 @@ body {
   .timeline-row__name { font-size: 10px; }
   .timeline-axis__year { font-size: 9px; }
 }
+
+/* ========== GLOBAL SEARCH ========== */
+.search-wrapper {
+  position: relative;
+  margin-left: auto;
+  max-width: 260px;
+  flex-shrink: 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 6px 12px 6px 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  font-size: 12px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--text);
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04);
+}
+
+.search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.search-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  border-bottom: 1px solid #f0ede8;
+  font-size: 12px;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.search-result:hover,
+.search-result--active {
+  background: #f0ede8;
+}
+
+.search-result__name {
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+
+.search-result__meta {
+  font-size: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--text-dim);
+  display: flex;
+  gap: 6px;
+}
+
+.search-result__type {
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}
+
+.search-empty {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* ========== MULTI-SELECT SCENARIO DESCRIPTIONS ========== */
+.scenario-descs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ========== SEARCH RESPONSIVE TABLET (max-width: 768px) ========== */
+@media (max-width: 768px) {
+  .search-wrapper {
+    max-width: 200px;
+  }
+}
+
+/* ========== SEARCH RESPONSIVE PHONE (max-width: 480px) ========== */
+@media (max-width: 480px) {
+  .search-wrapper {
+    max-width: 160px;
+  }
+
+  .search-input {
+    font-size: 11px;
+  }
+}

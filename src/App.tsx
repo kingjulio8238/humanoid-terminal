@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import PLYViewer, { preloadPLY } from './components/PLYViewer';
 import SupplyChainGraph from './components/SupplyChainGraph';
 import { companies, relationships, componentCategories } from './data';
@@ -617,16 +617,80 @@ function getSPOFData() {
   return { spofRows };
 }
 
+// Parse initial hash route
+function parseHash(): { tab?: string; company?: string } {
+  const hash = window.location.hash.slice(1); // remove #
+  if (hash.startsWith('/company/')) return { company: hash.slice(9) };
+  if (hash.startsWith('/tab/')) return { tab: hash.slice(5) };
+  return {};
+}
+
+const TYPE_DISPLAY: Record<string, string> = {
+  oem: 'OEM', tier1_supplier: 'Tier 1', component_maker: 'Supplier',
+  raw_material: 'Raw Material', ai_compute: 'Compute',
+};
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('skeleton');
-  const [companyId, setCompanyId] = useState<string | null>(null);
+  const initialHash = useMemo(() => parseHash(), []);
+  const [activeTab, setActiveTab] = useState(initialHash.tab || 'skeleton');
+  const [companyId, setCompanyId] = useState<string | null>(initialHash.company || null);
   const [actuatorType, setActuatorType] = useState<'linear' | 'rotary'>('linear');
   const [chainFocus, setChainFocus] = useState<string | null>(null);
   const [countryFilter, setCountryFilter] = useState<CountryGroup>(null);
   const [cutCountries, setCutCountries] = useState<Set<string>>(new Set());
   const [cutCompanies, setCutCompanies] = useState<Set<string>>(new Set());
-  const [activeScenario, setActiveScenario] = useState<string | null>(null);
+  const [activeScenarios, setActiveScenarios] = useState<Set<string>>(new Set());
   const [viewCount, setViewCount] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Hash routing — update URL on state change
+  useEffect(() => {
+    if (companyId) {
+      window.location.hash = `/company/${companyId}`;
+    } else {
+      window.location.hash = `/tab/${activeTab}`;
+    }
+  }, [activeTab, companyId]);
+
+  // Listen for browser back/forward
+  useEffect(() => {
+    const onHashChange = () => {
+      const { tab, company } = parseHash();
+      if (company) {
+        setCompanyId(company);
+      } else if (tab) {
+        setCompanyId(null);
+        setActiveTab(tab);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // Close search dropdown on outside click
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+
+  // Search results
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return companies.filter((c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.country.toLowerCase().includes(q) ||
+      c.type.toLowerCase().includes(q) ||
+      (c.ticker && c.ticker.toLowerCase().includes(q))
+    ).slice(0, 10);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetch('/api/views', { method: 'POST' })
@@ -670,9 +734,11 @@ export default function App() {
     return ids;
   }, [chainFocus, chain]);
 
-  const handleSelectCompany = (id: string) => {
+  const handleSelectCompany = useCallback((id: string) => {
     setCompanyId(id);
-  };
+    setSearchOpen(false);
+    setSearchQuery('');
+  }, []);
 
   const handleBackFromCompany = () => {
     setCompanyId(null);
@@ -916,6 +982,46 @@ export default function App() {
       <header className="header">
         <span className="header-title">Humanoid Atlas</span>
         <span className="header-sub">Humanoid Supply Chain & Landscape Explorer</span>
+        <div className="search-wrapper" ref={searchRef}>
+          <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search companies..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+            onFocus={() => setSearchOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); }
+              if (e.key === 'Enter' && searchResults.length > 0) {
+                handleSelectCompany(searchResults[0].id);
+              }
+            }}
+          />
+          {searchOpen && searchQuery.trim() && (
+            <div className="search-dropdown">
+              {searchResults.length > 0 ? (
+                searchResults.map((c) => (
+                  <div
+                    key={c.id}
+                    className="search-result"
+                    onClick={() => handleSelectCompany(c.id)}
+                  >
+                    <span className="search-result__name">{c.name}</span>
+                    <span className="search-result__meta">
+                      <span>{c.country}</span>
+                      <span className="search-result__type">{TYPE_DISPLAY[c.type] || c.type}</span>
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="search-empty">No results</div>
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
       <div className="country-filter">
@@ -1216,17 +1322,23 @@ export default function App() {
                   {SCENARIOS.map((s) => (
                     <button
                       key={s.id}
-                      className={`scenario-btn ${activeScenario === s.id ? 'scenario-btn--active' : ''}`}
+                      className={`scenario-btn ${activeScenarios.has(s.id) ? 'scenario-btn--active' : ''}`}
                       onClick={() => {
-                        if (activeScenario === s.id) {
-                          setActiveScenario(null);
-                          setCutCompanies(new Set());
-                          setCutCountries(new Set());
-                        } else {
-                          setActiveScenario(s.id);
-                          setCutCompanies(new Set(s.cutCompanies));
-                          setCutCountries(new Set(s.cutCountries));
-                        }
+                        const next = new Set(activeScenarios);
+                        if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                        setActiveScenarios(next);
+                        // Merge all active scenario cuts
+                        const allCutCompanies = new Set<string>();
+                        const allCutCountries = new Set<string>();
+                        next.forEach((sid) => {
+                          const sc = SCENARIOS.find((x) => x.id === sid);
+                          if (sc) {
+                            sc.cutCompanies.forEach((c) => allCutCompanies.add(c));
+                            sc.cutCountries.forEach((c) => allCutCountries.add(c));
+                          }
+                        });
+                        setCutCompanies(allCutCompanies);
+                        setCutCountries(allCutCountries);
                       }}
                     >
                       {s.label}
@@ -1234,12 +1346,13 @@ export default function App() {
                   ))}
                 </div>
 
-                {activeScenario && (() => {
-                  const scenario = SCENARIOS.find((s) => s.id === activeScenario);
-                  return scenario ? (
-                    <div className="scenario-desc">{scenario.description}</div>
-                  ) : null;
-                })()}
+                {activeScenarios.size > 0 && (
+                  <div className="scenario-descs">
+                    {SCENARIOS.filter((s) => activeScenarios.has(s.id)).map((s) => (
+                      <div key={s.id} className="scenario-desc">{s.description}</div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="scenario-or">or manually</div>
 
@@ -1250,7 +1363,7 @@ export default function App() {
                       key={g}
                       className={`cut-toggle ${cutCountries.has(g) ? 'cut-toggle--active' : ''}`}
                       onClick={() => {
-                        setActiveScenario(null);
+                        setActiveScenarios(new Set());
                         const next = new Set(cutCountries);
                         if (next.has(g)) next.delete(g); else next.add(g);
                         setCutCountries(next);
@@ -1264,7 +1377,7 @@ export default function App() {
                     <button className="cut-reset" onClick={() => {
                       setCutCountries(new Set());
                       setCutCompanies(new Set());
-                      setActiveScenario(null);
+                      setActiveScenarios(new Set());
                     }}>Reset</button>
                   )}
                 </div>
