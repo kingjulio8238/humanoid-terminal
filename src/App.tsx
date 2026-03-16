@@ -1387,20 +1387,6 @@ export default function App() {
                   ))}
                 </div>
 
-                {(activeScenarios.size > 0 || cutCountries.size > 0 || cutCompanies.size > 0) && (
-                  <div className="scenario-descs">
-                    {aiLoading ? (
-                      <div className="scenario-desc" style={{ fontStyle: 'italic', color: 'var(--text-dim)' }}>Generating analysis...</div>
-                    ) : aiSummary ? (
-                      <div className="scenario-desc">{aiSummary}</div>
-                    ) : activeScenarios.size > 0 ? (
-                      SCENARIOS.filter((s) => activeScenarios.has(s.id)).map((s) => (
-                        <div key={s.id} className="scenario-desc">{s.description}</div>
-                      ))
-                    ) : null}
-                  </div>
-                )}
-
                 <div className="nl-query-wrapper">
                   <input
                     className="nl-query-input"
@@ -1436,6 +1422,20 @@ export default function App() {
                   />
                   {nlParsing && <span className="nl-query-status">Parsing...</span>}
                 </div>
+
+                {(activeScenarios.size > 0 || cutCountries.size > 0 || cutCompanies.size > 0) && (
+                  <div className="scenario-descs">
+                    {aiLoading ? (
+                      <div className="scenario-desc" style={{ fontStyle: 'italic', color: 'var(--text-dim)' }}>Generating analysis...</div>
+                    ) : aiSummary ? (
+                      <div className="scenario-desc">{aiSummary}</div>
+                    ) : activeScenarios.size > 0 ? (
+                      SCENARIOS.filter((s) => activeScenarios.has(s.id)).map((s) => (
+                        <div key={s.id} className="scenario-desc">{s.description}</div>
+                      ))
+                    ) : null}
+                  </div>
+                )}
 
                 <div className="scenario-or">or manually</div>
 
