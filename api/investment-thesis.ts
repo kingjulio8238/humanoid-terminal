@@ -42,7 +42,7 @@ SUPPLIER DATA:
 - ${customerText}
 - ${altText}
 
-Write the thesis now (2-3 paragraphs, no headers, no bullet points):`;
+Write the thesis now (200 words max, 2-3 short paragraphs, no headers, no bullet points):`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -55,7 +55,7 @@ Write the thesis now (2-3 paragraphs, no headers, no bullet points):`;
         model: 'llama-3.1-8b-instant',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
-        max_tokens: 400,
+        max_tokens: 280,
       }),
     });
 
