@@ -12,7 +12,7 @@ const TABS = [
   { id: 'all_oems', label: 'All OEMs' },
   { id: 'geopolitics', label: 'Geopolitics' },
   { id: 'network', label: 'Network' },
-  { id: 'timeline', label: 'Timeline' },
+  { id: 'timeline', label: 'Buildout' },
   { id: 'sensors_general', label: 'Sensors' },
   { id: 'compute', label: 'Compute' },
   { id: 'batteries', label: 'Battery' },
@@ -432,9 +432,9 @@ function parseLaunchDate(s: string): number {
   return 2025; // fallback
 }
 
-const TIMELINE_START = 2019;
-const TIMELINE_END = 2027;
-const TIMELINE_YEARS = Array.from({ length: TIMELINE_END - TIMELINE_START + 1 }, (_, i) => TIMELINE_START + i);
+const TIMELINE_START = 2018.5;
+const TIMELINE_END = 2026.5;
+const TIMELINE_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
 function getTimelineData() {
   const oemList = companies.filter((c) => c.type === 'oem');
@@ -1398,11 +1398,33 @@ export default function App() {
           const tl = getTimelineData();
           return (
             <div className="timeline-view">
-              <div className="timeline-axis">
-                {TIMELINE_YEARS.map((y) => (
-                  <span key={y} className="timeline-axis__year">{y}</span>
-                ))}
-                <div className="timeline-axis__now" style={{ left: `${tl.nowPct}%` }} />
+              {/* Year axis — offset to align with track column */}
+              <div className="timeline-header">
+                <div className="timeline-header__spacer" />
+                <div className="timeline-axis">
+                  {TIMELINE_YEARS.map((y) => (
+                    <span key={y} className="timeline-axis__year">{y}</span>
+                  ))}
+                  <div className="timeline-axis__now" style={{ left: `${tl.nowPct}%` }} />
+                </div>
+              </div>
+
+              <div className="timeline-legend">
+                <span className="timeline-legend__item">
+                  <span className="timeline-legend__dot timeline-legend__dot--filled" /> In Production
+                </span>
+                <span className="timeline-legend__item">
+                  <span className="timeline-legend__dot timeline-legend__dot--hollow" /> Prototype
+                </span>
+                <span className="timeline-legend__item">
+                  <span className="timeline-legend__dot" style={{ background: '#3b82f6', borderColor: '#3b82f6' }} /> US
+                </span>
+                <span className="timeline-legend__item">
+                  <span className="timeline-legend__dot" style={{ background: '#ef4444', borderColor: '#ef4444' }} /> CN
+                </span>
+                <span className="timeline-legend__item">
+                  <span className="timeline-legend__dot" style={{ background: '#888', borderColor: '#888' }} /> Other
+                </span>
               </div>
 
               <div className="timeline-lanes">
@@ -1418,34 +1440,18 @@ export default function App() {
                         className="timeline-row"
                         onClick={() => handleSelectCompany(row.id)}
                       >
+                        <div className="timeline-row__info">
+                          <span className="timeline-row__name">{row.name}</span>
+                          <span className="timeline-row__meta">
+                            {row.dateStr}
+                            {row.shipments > 0 && <span className="timeline-row__ships">{row.shipments.toLocaleString()}</span>}
+                          </span>
+                        </div>
                         <div className="timeline-row__track">
                           <div
-                            className="timeline-row__line"
-                            style={{ left: 0, width: `${row.pct}%` }}
-                          />
-                          <div
                             className={`timeline-row__dot ${row.inProduction ? 'timeline-row__dot--production' : 'timeline-row__dot--prototype'}`}
-                            style={{ left: `${row.pct}%` }}
+                            style={{ left: `${row.pct}%`, borderColor: COUNTRY_GROUP_COLORS[row.countryGroup] || '#888', background: row.inProduction ? (COUNTRY_GROUP_COLORS[row.countryGroup] || '#888') : 'var(--bg-card)' }}
                           />
-                          {row.shipments > 0 && (
-                            <div
-                              className="timeline-row__shipments"
-                              style={{
-                                left: `${row.pct}%`,
-                                width: `${Math.max(8, (row.shipments / tl.maxShipments) * 15)}%`,
-                                background: COUNTRY_GROUP_COLORS[row.countryGroup] || '#888',
-                              }}
-                            />
-                          )}
-                          <div
-                            className="timeline-row__label"
-                            style={{ left: `${row.pct}%` }}
-                          >
-                            <span className="timeline-row__name">{row.name}</span>
-                            <span className="timeline-row__date">{row.dateStr}</span>
-                            {row.inProduction && <span className="timeline-row__status">In Production</span>}
-                            {row.shipments > 0 && <span className="timeline-row__date">{row.shipments.toLocaleString()} units</span>}
-                          </div>
                         </div>
                       </div>
                     ))}

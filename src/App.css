@@ -2467,187 +2467,181 @@ body {
 }
 
 /* ========== TIMELINE VIEW ========== */
-
-/* 1. Outer container */
 .timeline-view {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 24px 32px;
 }
 
-/* 2. Year markers row */
-.timeline-axis {
+/* Header row: spacer + axis */
+.timeline-header {
   display: flex;
-  justify-content: space-between;
-  position: relative;
-  padding: 0 0 8px;
+  align-items: flex-end;
+  margin-bottom: 20px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 24px;
+}
+.timeline-header__spacer {
+  width: 200px;
+  flex-shrink: 0;
 }
 
-/* 3. Each year label */
+.timeline-axis {
+  display: flex;
+  flex: 1;
+  position: relative;
+  padding-bottom: 8px;
+}
 .timeline-axis__year {
+  flex: 1;
+  text-align: center;
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
   color: var(--text-dim);
-  text-align: center;
-  flex: 1;
 }
-
-/* 4. "Now" marker */
 .timeline-axis__now {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 1px;
   border-left: 2px dashed var(--red);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
-/* 5. Swim lanes container */
-.timeline-lanes {
+/* Legend */
+.timeline-legend {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* 6. One swim lane */
-.timeline-lane {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* 7. Swim lane title */
-.timeline-lane__header {
-  font-family: 'Share Tech Mono', monospace;
+  gap: 16px;
+  margin-bottom: 16px;
   font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--text-dim);
-  margin-bottom: 10px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
 }
-
-/* 8. Each OEM row */
-.timeline-row {
+.timeline-legend__item {
   display: flex;
   align-items: center;
-  height: 36px;
-  position: relative;
-  cursor: pointer;
-  transition: background 0.15s;
+  gap: 5px;
 }
-
-.timeline-row:hover {
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 4px;
-}
-
-/* 9. Horizontal track area */
-.timeline-row__track {
-  position: relative;
-  flex: 1;
-  height: 100%;
-}
-
-/* 10. Line from start to dot */
-.timeline-row__line {
-  position: absolute;
-  top: 50%;
-  height: 2px;
-  transform: translateY(-50%);
-  background: var(--border);
-  border-radius: 1px;
-}
-
-/* 11. Event dot */
-.timeline-row__dot {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
+.timeline-legend__dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   border: 2px solid var(--accent);
-  z-index: 1;
 }
-
-/* 12. Filled dot — In Production */
-.timeline-row__dot--production {
+.timeline-legend__dot--filled {
   background: var(--accent);
 }
-
-/* 13. Hollow dot — Prototype */
-.timeline-row__dot--prototype {
+.timeline-legend__dot--hollow {
   background: var(--bg-card);
 }
 
-/* 14. OEM name + date text */
-.timeline-row__label {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  white-space: nowrap;
-  font-size: 11px;
-  color: var(--text);
-  padding-left: 8px;
+/* Lanes */
+.timeline-lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
-
-/* 15. Company name part */
-.timeline-row__name {
-  font-weight: 500;
+.timeline-lane {
+  display: flex;
+  flex-direction: column;
 }
-
-/* 16. Date part */
-.timeline-row__date {
-  color: var(--text-dim);
-  margin-left: 6px;
+.timeline-lane__header {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.timeline-lane--dim {
+  opacity: 0.2;
 }
 
-/* 17. "In Production" badge */
+/* Each OEM row: fixed label | track */
+.timeline-row {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f0ede8;
+}
+.timeline-row:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+/* Left info column */
+.timeline-row__info {
+  width: 200px;
+  flex-shrink: 0;
+  padding-right: 12px;
+  overflow: hidden;
+}
+.timeline-row__name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.timeline-row__meta {
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
+}
 .timeline-row__status {
   font-size: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 1px 5px;
-  border-radius: 3px;
-  margin-left: 6px;
+  letter-spacing: 0.3px;
+  padding: 1px 4px;
+  border-radius: 2px;
   background: var(--green);
   color: white;
 }
-
-/* 18. Shipment bar extending right from dot */
-.timeline-row__shipments {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 6px;
-  border-radius: 3px;
-  opacity: 0.6;
+.timeline-row__ships {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text-secondary);
 }
 
-/* 19. Shipment volume summary section */
+/* Track */
+.timeline-row__track {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  border-left: 1px solid #e8e5e0;
+}
+.timeline-row__dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2.5px solid;
+  z-index: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Summary */
 .timeline-summary {
   margin-top: 32px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
-
-/* 20. Summary title */
 .timeline-summary__title {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-dim);
   margin-bottom: 12px;
 }
-
-/* 21. Each country row */
 .timeline-summary__row {
   display: flex;
   align-items: center;
@@ -2655,15 +2649,11 @@ body {
   margin-bottom: 6px;
   font-size: 12px;
 }
-
-/* 22. Country label */
 .timeline-summary__label {
-  min-width: 80px;
+  min-width: 100px;
   font-weight: 500;
   color: var(--text);
 }
-
-/* 23. Bar track */
 .timeline-summary__bar {
   flex: 1;
   height: 8px;
@@ -2671,15 +2661,11 @@ body {
   border-radius: 4px;
   overflow: hidden;
 }
-
-/* 24. Filled portion */
 .timeline-summary__fill {
   height: 100%;
   border-radius: 4px;
   transition: width 0.3s;
 }
-
-/* 25. Number + percentage */
 .timeline-summary__value {
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
@@ -2688,33 +2674,18 @@ body {
   text-align: right;
 }
 
-/* 26. Dimmed lane when country filter active */
-.timeline-lane--dim {
-  opacity: 0.2;
-}
-
 /* ========== TIMELINE TABLET (max-width: 768px) ========== */
 @media (max-width: 768px) {
-  .timeline-view {
-    padding: 16px;
-  }
-
-  .timeline-row__label {
-    font-size: 10px;
-  }
+  .timeline-view { padding: 16px; }
+  .timeline-header__spacer, .timeline-row__info { width: 140px; }
+  .timeline-row__name { font-size: 11px; }
 }
 
 /* ========== TIMELINE PHONE (max-width: 480px) ========== */
 @media (max-width: 480px) {
-  .timeline-view {
-    padding: 12px 8px;
-  }
-
-  .timeline-row {
-    height: 32px;
-  }
-
-  .timeline-axis__year {
-    font-size: 9px;
-  }
+  .timeline-view { padding: 12px 8px; }
+  .timeline-header__spacer, .timeline-row__info { width: 100px; }
+  .timeline-row { height: 36px; }
+  .timeline-row__name { font-size: 10px; }
+  .timeline-axis__year { font-size: 9px; }
 }
