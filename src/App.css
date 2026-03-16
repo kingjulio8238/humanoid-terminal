@@ -1757,3 +1757,303 @@ body {
     padding: 4px 8px;
   }
 }
+
+/* ========== BOM & COST ANALYSIS ========== */
+
+/* OEM Price/BOM Comparison */
+.bom-section {
+  padding: 0;
+}
+
+.bom-section .section-title {
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  margin-top: 32px;
+}
+
+.bom-subsection {
+  margin-bottom: 24px;
+}
+
+.bom-subsection .cut-subtitle {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.bom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bom-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.bom-row:hover {
+  border-color: var(--border-hover);
+}
+
+.bom-row__name {
+  width: 140px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bom-row__bars {
+  flex: 1;
+  position: relative;
+  height: 24px;
+  background: #f0ede8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bom-row__bom {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.bom-row__price {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  background: var(--red);
+  border-radius: 1px;
+  transition: left 0.3s;
+}
+
+.bom-row__labels {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 90px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.bom-row__bom-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.bom-row__price-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.bom-row__country {
+  font-size: 10px;
+  color: var(--text-dim);
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.bom-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.bom-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bom-legend__bar {
+  width: 20px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.bom-legend__bar--bom {
+  background: var(--accent);
+}
+
+.bom-legend__bar--price {
+  background: var(--red);
+}
+
+.bom-note {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* Actuator Cost Waterfall */
+.actuator-waterfall {
+  margin-top: 8px;
+}
+
+.actuator-bar {
+  display: flex;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.actuator-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: white;
+  transition: width 0.3s;
+  min-width: 32px;
+}
+
+.actuator-seg--reducer {
+  background: #c53030;
+}
+
+.actuator-seg--torque {
+  background: #d69e2e;
+}
+
+.actuator-seg--motor {
+  background: #2b6cb0;
+}
+
+.actuator-seg--encoder {
+  background: #276749;
+}
+
+.actuator-seg--other {
+  background: #a0a0a0;
+}
+
+.actuator-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.actuator-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actuator-legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Unit Economics */
+.econ-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.econ-card {
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.econ-card:hover {
+  border-color: var(--border-hover);
+}
+
+.econ-card__name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.econ-card__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+
+.econ-card__label {
+  color: var(--text-dim);
+}
+
+.econ-card__value {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--text);
+}
+
+.econ-card__margin {
+  font-weight: 600;
+}
+
+.econ-card__margin--positive {
+  color: var(--green);
+}
+
+.econ-card__margin--negative {
+  color: var(--red);
+}
+
+/* ========== BOM & COST ANALYSIS TABLET (max-width: 768px) ========== */
+@media (max-width: 768px) {
+  .bom-row__name {
+    width: 100px;
+  }
+
+  .econ-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ========== BOM & COST ANALYSIS PHONE (max-width: 480px) ========== */
+@media (max-width: 480px) {
+  .bom-row {
+    flex-wrap: wrap;
+  }
+
+  .bom-row__name {
+    width: 100%;
+  }
+
+  .bom-row__labels {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .econ-grid {
+    grid-template-columns: 1fr;
+  }
+}

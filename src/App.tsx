@@ -412,6 +412,60 @@ const SUPPLIER_COMPONENT_LABEL: Record<string, string> = {
 // Component categories that are bottlenecks (from componentCategories data)
 const BOTTLENECK_COMPONENTS = new Set(['Reducers', 'Screws']);
 
+// Rotary actuator cost breakdown (industry data from ACTUATOR_INFO)
+const ACTUATOR_BREAKDOWN = [
+  { id: 'reducer', label: 'Harmonic Reducer', pct: 36 },
+  { id: 'torque', label: 'Torque Sensor', pct: 30 },
+  { id: 'motor', label: 'BLDC Motor', pct: 13.5 },
+  { id: 'encoder', label: 'Encoders', pct: 7 },
+  { id: 'other', label: 'Housing & Other', pct: 13.5 },
+];
+
+// Parse a price/BOM string like "$40K", "~$28K", "$11.5K" into a number (in thousands)
+function parseCostK(s: string | undefined): number | null {
+  if (!s) return null;
+  const m = s.match(/\$\s*([\d.]+)\s*K/i);
+  if (m) return parseFloat(m[1]);
+  // Handle "$20K - $30K" → take first value
+  const range = s.match(/\$\s*([\d.]+)\s*K?\s*[-–]/i);
+  if (range) return parseFloat(range[1]);
+  return null;
+}
+
+function getBOMData() {
+  const oemList = companies.filter((c) => c.type === 'oem');
+
+  // Build comparison rows with parsed BOM and price
+  const rows = oemList.map((oem) => {
+    const bomK = parseCostK(oem.robotSpecs?.bom);
+    const priceK = parseCostK(oem.robotSpecs?.price);
+    const margin = (bomK !== null && priceK !== null && priceK > 0)
+      ? Math.round(((priceK - bomK) / priceK) * 100)
+      : null;
+    return {
+      id: oem.id,
+      name: oem.name,
+      country: oem.country,
+      bomK,
+      priceK,
+      bomRaw: oem.robotSpecs?.bom || null,
+      priceRaw: oem.robotSpecs?.price || null,
+      margin,
+      sortValue: priceK ?? bomK ?? 999, // sort by price, fallback to BOM
+    };
+  })
+    .filter((r) => r.bomK !== null || r.priceK !== null)
+    .sort((a, b) => a.sortValue - b.sortValue);
+
+  // Max value for bar scaling
+  const maxK = Math.max(...rows.map((r) => Math.max(r.bomK || 0, r.priceK || 0)));
+
+  // Unit economics: OEMs with both BOM and price
+  const econRows = rows.filter((r) => r.bomK !== null && r.priceK !== null);
+
+  return { rows, maxK, econRows, actuatorBreakdown: ACTUATOR_BREAKDOWN };
+}
+
 function getSPOFData() {
   const oemList = companies.filter((c) => c.type === 'oem');
   const totalOems = oemList.length;
@@ -755,28 +809,100 @@ export default function App() {
         )}
 
         {/* All OEMs tab */}
-        {activeTab === 'all_oems' && (
-          <div className="oems-view">
-            <div className="oem-image-grid">
-              {oems.map((c) => (
-                <button key={c.id} className={`oem-image-card ${countryFilter && getCountryGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`} onClick={() => handleSelectCompany(c.id)}>
-                  {c.robotImage && (
-                    <div className="oem-image-card__img">
-                      <img src={c.robotImage} alt={c.name} />
-                    </div>
-                  )}
-                  <div className="oem-image-card__info">
-                    <span className="oem-image-card__name">{c.name}</span>
-                    <span className="oem-image-card__country">{c.country}</span>
-                    {c.robotSpecs?.status === 'In Production' && (
-                      <span className="oem-image-card__status">In Production</span>
+        {activeTab === 'all_oems' && (() => {
+          const bomData = getBOMData();
+          return (
+            <div className="oems-view">
+              <div className="oem-image-grid">
+                {oems.map((c) => (
+                  <button key={c.id} className={`oem-image-card ${countryFilter && getCountryGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`} onClick={() => handleSelectCompany(c.id)}>
+                    {c.robotImage && (
+                      <div className="oem-image-card__img">
+                        <img src={c.robotImage} alt={c.name} />
+                      </div>
                     )}
+                    <div className="oem-image-card__info">
+                      <span className="oem-image-card__name">{c.name}</span>
+                      <span className="oem-image-card__country">{c.country}</span>
+                      {c.robotSpecs?.status === 'In Production' && (
+                        <span className="oem-image-card__status">In Production</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="bom-section">
+                <h3 className="section-title">BOM & Cost Analysis</h3>
+
+                <div className="bom-subsection">
+                  <h4 className="cut-subtitle">OEM Price & BOM Comparison</h4>
+                  <div className="bom-list">
+                    {bomData.rows.map((row) => (
+                      <div key={row.id} className="bom-row" onClick={() => handleSelectCompany(row.id)}>
+                        <span className="bom-row__country">{row.country}</span>
+                        <span className="bom-row__name">{row.name}</span>
+                        <div className="bom-row__bars">
+                          {row.bomK !== null && (
+                            <div
+                              className="bom-row__bom"
+                              style={{ width: `${(row.bomK / bomData.maxK) * 100}%` }}
+                            />
+                          )}
+                          {row.priceK !== null && (
+                            <div
+                              className="bom-row__price"
+                              style={{ left: `${(row.priceK / bomData.maxK) * 100}%` }}
+                            />
+                          )}
+                        </div>
+                        <div className="bom-row__labels">
+                          {row.bomK !== null && (
+                            <span className="bom-row__bom-label">${row.bomK}K BOM</span>
+                          )}
+                          {row.priceK !== null && (
+                            <span className="bom-row__price-label">${row.priceK}K price</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </button>
-              ))}
+                  <div className="bom-legend">
+                    <span className="bom-legend__item"><span className="bom-legend__bar bom-legend__bar--bom" /> BOM</span>
+                    <span className="bom-legend__item"><span className="bom-legend__bar bom-legend__bar--price" /> Price</span>
+                  </div>
+                </div>
+
+                <div className="bom-subsection">
+                  <h4 className="cut-subtitle">Rotary Actuator Cost Breakdown</h4>
+                  <p className="bom-note">Each humanoid uses ~20 rotary actuators. The reducer alone is 36% of each unit's cost — the single biggest cost driver.</p>
+                  <div className="actuator-waterfall">
+                    <div className="actuator-bar">
+                      {bomData.actuatorBreakdown.map((seg) => (
+                        <div
+                          key={seg.id}
+                          className={`actuator-seg actuator-seg--${seg.id}`}
+                          style={{ width: `${seg.pct}%` }}
+                        >
+                          {seg.pct >= 10 && `${seg.pct}%`}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="actuator-legend">
+                      {bomData.actuatorBreakdown.map((seg) => (
+                        <span key={seg.id} className="actuator-legend__item">
+                          <span className={`actuator-legend__dot actuator-seg--${seg.id}`} />
+                          {seg.label} ({seg.pct}%)
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Geopolitics tab */}
         {activeTab === 'geopolitics' && (() => {
@@ -1061,6 +1187,7 @@ export default function App() {
                   <p className="cut-no-impact">No impact — no suppliers affected in the dataset.</p>
                 )}
               </section>
+
             </div>
           );
         })()}
