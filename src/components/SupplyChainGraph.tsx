@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -194,6 +194,13 @@ interface SupplyChainGraphProps {
 
 export default function SupplyChainGraph({ onNodeSelect, countryFilter, highlightedIds }: SupplyChainGraphProps) {
   const [focusedId, setFocusedId] = useState<string | null>(null);
+
+  // Clear internal focus when external highlights change
+  useEffect(() => {
+    if (highlightedIds && highlightedIds.size > 0) {
+      setFocusedId(null);
+    }
+  }, [highlightedIds]);
 
   // Compute layout once
   const positions = useMemo(() => {

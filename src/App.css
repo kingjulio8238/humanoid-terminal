@@ -2877,6 +2877,19 @@ body {
   font-style: italic;
 }
 
+/* ========== COMPANY ASK ========== */
+.company-ask {
+  position: relative;
+  padding: 0 0 16px;
+}
+
+.company-ask__answer {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
 /* ========== NETWORK ANSWER ========== */
 .network-answer {
   padding: 8px 24px;

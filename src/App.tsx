@@ -652,6 +652,9 @@ export default function App() {
   const [graphHighlightIds, setGraphHighlightIds] = useState<Set<string> | null>(null);
   const [graphAnswer, setGraphAnswer] = useState<string | null>(null);
   const [graphQuerying, setGraphQuerying] = useState(false);
+  const [companyChat, setCompanyChat] = useState('');
+  const [companyChatAnswer, setCompanyChatAnswer] = useState<string | null>(null);
+  const [companyChatLoading, setCompanyChatLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [nlQuery, setNlQuery] = useState('');
@@ -846,6 +849,8 @@ export default function App() {
     setCompanyId(id);
     setSearchOpen(false);
     setSearchQuery('');
+    setCompanyChat('');
+    setCompanyChatAnswer(null);
   }, []);
 
   const handleBackFromCompany = () => {
@@ -925,6 +930,48 @@ export default function App() {
         </header>
 
         <main className="company-view">
+          <div className="company-ask">
+            <input
+              className="nl-query-input"
+              type="text"
+              placeholder={`Ask about ${selectedCompany.name}...`}
+              value={companyChat}
+              disabled={companyChatLoading}
+              onChange={(e) => setCompanyChat(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') { setCompanyChat(''); setCompanyChatAnswer(null); }
+                if (e.key === 'Enter' && companyChat.trim() && !companyChatLoading) {
+                  setCompanyChatLoading(true);
+                  setCompanyChatAnswer(null);
+                  const sRels = supplierRels.map((r) => {
+                    const s = companies.find((c) => c.id === r.from);
+                    return { fromName: s?.name, fromCountry: s?.country, component: r.component };
+                  });
+                  const cRels = customerRels.map((r) => {
+                    const c = companies.find((x) => x.id === r.to);
+                    return { toName: c?.name, toCountry: c?.country, component: r.component };
+                  });
+                  fetch('/api/company-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      query: companyChat.trim(),
+                      company: { name: selectedCompany.name, country: selectedCompany.country, type: selectedCompany.type, description: selectedCompany.description, marketShare: selectedCompany.marketShare, ticker: selectedCompany.ticker, robotSpecs: selectedCompany.robotSpecs },
+                      supplierRels: sRels,
+                      customerRels: cRels,
+                      allCompanies: companies.map((c) => ({ id: c.id, name: c.name, country: c.country, type: c.type })),
+                    }),
+                  })
+                    .then((r) => r.json())
+                    .then((d) => { if (d.answer) setCompanyChatAnswer(d.answer); })
+                    .catch(() => {})
+                    .finally(() => setCompanyChatLoading(false));
+                }
+              }}
+            />
+            {companyChatLoading && <span className="nl-query-status">Thinking...</span>}
+            {companyChatAnswer && <div className="company-ask__answer">{companyChatAnswer}</div>}
+          </div>
           <div className="company-top">
             <div className="company-model">
               {selectedCompany.robotImage ? (
@@ -1699,7 +1746,6 @@ export default function App() {
                 }}>Clear</button>
               )}
             </div>
-            {graphAnswer && <div className="network-answer">{graphAnswer}</div>}
             <SupplyChainGraph
               onNodeSelect={handleSelectCompany}
               countryFilter={countryFilter}
