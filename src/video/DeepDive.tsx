@@ -32,7 +32,7 @@ const T = 10; // transition frames (~0.33s — snappier for deep dive)
 function ClipScene({
   clip,
   title,
-  duration,
+  duration: _,
   caption,
 }: {
   clip: string;
