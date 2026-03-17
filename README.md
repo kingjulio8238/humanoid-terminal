@@ -16,18 +16,6 @@ Interactive supply chain intelligence platform for the humanoid robotics industr
 - **Competitive Comparison** — Side-by-side OEM specs and capability analysis
 - **Timeline View** — Buildout and production ramp tracking
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, TypeScript, Vite |
-| 3D | Three.js via @react-three/fiber + @react-three/drei |
-| Graph | @xyflow/react |
-| Animation | GSAP |
-| AI | Groq API (llama-3.1-8b-instant) |
-| Backend | Vercel Serverless Functions |
-| Analytics | Vercel Analytics, Upstash Redis (view counter) |
-
 ## Getting Started
 
 ### Prerequisites
@@ -128,12 +116,6 @@ Contributions are welcome! Whether it's new data, bug fixes, UI improvements, or
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Commit your changes
 4. Push to your fork and open a Pull Request
-
-## Deployment
-
-The app deploys on [Vercel](https://vercel.com). Push to `main` to trigger a production deployment.
-
-Set the environment variables in your Vercel project settings.
 
 ## License
 
