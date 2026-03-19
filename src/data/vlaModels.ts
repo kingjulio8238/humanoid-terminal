@@ -329,6 +329,13 @@ export const vlaModels: VLAModel[] = [
           { label: 'NVIDIA: Physics AI partner ecosystem', url: 'https://nvidianews.nvidia.com/news/nvidia-isaac-gr00t-n1-open-humanoid-robot-foundation-model-simulation-frameworks' },
         ],
       },
+      {
+        companyId: 'fauna',
+        relationship: 'partner',
+        sources: [
+          { label: 'Fauna Sprout Technical Report (IsaacSim/Lab + GR00T refs)', url: 'https://arxiv.org/abs/2601.18963' },
+        ],
+      },
     ],
   },
   {

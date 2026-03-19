@@ -234,4 +234,11 @@ export const relationships: SupplyRelationship[] = [
   // Neura Robotics (4NE-1)
   { id: 'r390', from: 'nvidia', to: 'neura_4ne1', component: 'Jetson Thor T5000', description: 'Main compute with water cooling, GR00T XX VLA' },
 
+  // Fauna Robotics (Sprout)
+  { id: 'r400', from: 'nvidia', to: 'fauna', component: 'Jetson AGX Orin 64GB', description: 'Primary AI/perception compute' },
+  { id: 'r401', from: 'stereolabs', to: 'fauna', component: 'ZED2i Stereo Camera', description: 'Stereo RGB-D for visual-inertial odometry and mapping' },
+  { id: 'r402', from: 'stmicro', to: 'fauna', component: 'VL53L8CX ToF Sensors', description: '4x time-of-flight obstacle detection sensors' },
+  { id: 'r403', from: 'molicel', to: 'fauna', component: 'P50B Battery Cells', description: 'Li-ion 21700 cells, 46.8V swappable pack' },
+  { id: 'r404', from: 'bosch_sensortec', to: 'fauna', component: 'IMU', description: '9-axis inertial measurement unit' },
+
 ];
