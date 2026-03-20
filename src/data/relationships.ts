@@ -133,7 +133,7 @@ export const relationships: SupplyRelationship[] = [
   // === ADDITIONAL MOTOR RELATIONSHIPS (from audit) ===
   { id: 'r145', from: 'moons', to: 'xpeng', component: 'Servo Motors' },
   { id: 'r146', from: 'moons', to: 'ubtech', component: 'Servo Motors' },
-  { id: 'r147', from: 'maxon', to: '1x', component: 'BLDC Motors', description: 'Frameless BLDC motors' },
+  { id: 'r147', from: '1x', to: '1x', component: 'Revo2 Motors (in-house)', description: 'Proprietary motors with in-house wound copper coils, 5x torque density vs off-the-shelf' },
 
   // === ADDITIONAL BEARING RELATIONSHIPS (from audit) ===
   { id: 'r148', from: 'thk', to: 'agibot', component: 'Cross-Roller Bearings' },
@@ -144,7 +144,7 @@ export const relationships: SupplyRelationship[] = [
   // === ADDITIONAL BATTERY RELATIONSHIPS (from audit) ===
   { id: 'r152', from: 'lg_energy', to: 'boston_dynamics', component: 'Battery Cells', description: 'Hyundai group battery supply chain' },
   { id: 'r153', from: 'panasonic_energy', to: 'agility', component: 'Battery Cells' },
-  { id: 'r154', from: 'panasonic_energy', to: '1x', component: 'Battery Cells' },
+  { id: 'r154', from: '1x', to: '1x', component: 'Battery Cells (in-house)', description: '1X manufactures their own batteries' },
 
   // === ADDITIONAL SCREW RELATIONSHIPS (from audit) ===
   { id: 'r155', from: 'nanjing_kgm', to: 'unitree', component: 'Planetary Roller Screws', description: 'Chinese domestic screw supplier' },
@@ -215,7 +215,7 @@ export const relationships: SupplyRelationship[] = [
   { id: 'r342', from: 'intel', to: 'dobot', component: 'Depth Cameras', description: 'RealSense D455 depth camera' },
   { id: 'r341', from: 'nvidia', to: 'dobot', component: 'GPU', description: '16GB GPU (1500 TOPS total system), Physics AI partner' },
 
-  // LimX Dynamics (CL-3 Oli)
+  // LimX Dynamics (Oli)
   { id: 'r350', from: 'nvidia', to: 'limx', component: 'Jetson Orin NX', description: 'AI/perception compute (157 TOPS)' },
   { id: 'r351', from: 'intel', to: 'limx', component: 'Depth Cameras', description: 'RealSense D435i (head, chest, wrist, hip)' },
 
@@ -234,9 +234,16 @@ export const relationships: SupplyRelationship[] = [
   // Neura Robotics (4NE-1)
   { id: 'r390', from: 'nvidia', to: 'neura_4ne1', component: 'Jetson Thor T5000', description: 'Main compute with water cooling, GR00T XX VLA' },
 
-   // Vanar Robots (Gen 1)
+  // Vanar Robots (Gen 1)
   { id: 'r391', from: 'nvidia', to: 'vanar_robots', component: 'Jetson Platform', description: 'Primary compute for in-house VLA models' },
   { id: 'r392', from: 'panasonic_energy', to: 'vanar_robots', component: 'Battery Cells', description: 'Commercially sourced Panasonic cells for custom battery pack' },
   { id: 'r393', from: 'sony_sensors', to: 'vanar_robots', component: 'Image Sensors', description: 'Planned Sony vision sensors for multi-modal perception' },
+
+  // Fauna Robotics (Sprout)
+  { id: 'r400', from: 'nvidia', to: 'fauna', component: 'Jetson AGX Orin 64GB', description: 'Primary AI/perception compute' },
+  { id: 'r401', from: 'stereolabs', to: 'fauna', component: 'ZED2i Stereo Camera', description: 'Stereo RGB-D for visual-inertial odometry and mapping' },
+  { id: 'r402', from: 'stmicro', to: 'fauna', component: 'VL53L8CX ToF Sensors', description: '4x time-of-flight obstacle detection sensors' },
+  { id: 'r403', from: 'molicel', to: 'fauna', component: 'P50B Battery Cells', description: 'Li-ion 21700 cells, 46.8V swappable pack' },
+  { id: 'r404', from: 'bosch_sensortec', to: 'fauna', component: 'IMU', description: '9-axis inertial measurement unit' },
 
 ];

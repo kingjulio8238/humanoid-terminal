@@ -229,9 +229,11 @@ export default function SupplyChainGraph({ onNodeSelect, countryFilter, highligh
     return ids;
   }, [focusedId]);
 
-  function getCountryGroup(country: string) {
+  function getCountryFilterGroup(country: string) {
     if (country === 'US') return 'US';
     if (country === 'CN') return 'CN';
+    if (country === 'JP') return 'JP';
+    if (country === 'KR') return 'KR';
     return 'OTHER';
   }
 
@@ -240,7 +242,7 @@ export default function SupplyChainGraph({ onNodeSelect, countryFilter, highligh
       const pos = positions[c.id] || { x: 0, y: 0 };
       const dim = (highlightedIds && highlightedIds.size > 0 && !highlightedIds.has(c.id)) ||
         (connectedIds !== null && !connectedIds.has(c.id)) ||
-        (countryFilter !== null && getCountryGroup(c.country) !== countryFilter);
+        (countryFilter !== null && getCountryFilterGroup(c.country) !== countryFilter);
 
       return {
         id: c.id,

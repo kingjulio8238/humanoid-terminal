@@ -101,12 +101,27 @@ body {
 }
 
 /* ========== COUNTRY FILTER ========== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  padding: 8px 32px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 0;
+}
+
+.filter-bar__separator {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 12px;
+  flex-shrink: 0;
+}
+
 .country-filter {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 32px;
-  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -138,6 +153,39 @@ body {
 .geo-dim {
   opacity: 0.15;
   transition: opacity 0.2s;
+}
+
+/* ========== TAB GROUP NAV ========== */
+.tab-group-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tab-group-pill {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab-group-pill:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.tab-group-pill--active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
 }
 
 /* ========== COMPONENT NAV ========== */
@@ -275,12 +323,42 @@ body {
   letter-spacing: 0.5px;
 }
 
-.oem-image-card__status {
+/* Heart like button (inline in info bar) */
+.oem-heart {
+  border: none;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 0.5px;
-  color: var(--green);
-  text-transform: uppercase;
+  font-size: 9px;
+  color: var(--text-dim);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s, color 0.15s;
+  line-height: 1;
+}
+
+.oem-heart:hover {
+  transform: scale(1.15);
+}
+
+.oem-heart.liked {
+  color: var(--red);
+}
+
+.oem-heart.liked svg {
+  animation: heart-pulse 0.3s ease-out;
+}
+
+.oem-heart__count {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes heart-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 
 /* ========== COMPONENT VIEW ========== */
@@ -505,6 +583,192 @@ body {
 .supply-chain {
   padding: 32px;
   border-bottom: 1px solid var(--border);
+}
+
+/* ========== CAPABILITY MATRIX ========== */
+.cap-matrix {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cap-matrix__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+}
+
+.cap-matrix__tool-header {
+  text-align: left;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 12px 10px 0;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.cap-matrix__cap-header {
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 0 10px;
+  font-weight: 400;
+  width: 64px;
+  min-width: 52px;
+}
+
+.cap-matrix__cap-header span {
+  display: inline-block;
+}
+
+.cap-matrix__row {
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+  border-top: 1px solid var(--border);
+}
+
+.cap-matrix__row:hover {
+  background: var(--bg-muted);
+}
+
+.cap-matrix__row--focused {
+  background: var(--bg-muted);
+}
+
+.cap-matrix__row--dim {
+  opacity: 0.3;
+}
+
+.cap-matrix__tool-name {
+  padding: 8px 12px 8px 0;
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.cap-matrix__cell {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.cap-matrix__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.15s;
+}
+
+.cap-matrix__dot--on {
+  background: var(--text);
+}
+
+/* ========== REWARD CHART (video-synced) ========== */
+.reward-chart {
+  padding: 12px 0;
+}
+
+.reward-chart__top-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.reward-chart__task-select {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.reward-chart__instruction {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+}
+
+.reward-chart__legend {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-left: calc(40% + 12px);
+}
+
+.reward-chart__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.reward-chart__legend-item--dim {
+  opacity: 0.3;
+}
+
+.reward-chart__legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.reward-chart__legend-name {
+  font-weight: 500;
+}
+
+.reward-chart__legend-voc {
+  color: var(--text-dim);
+  font-size: 8px;
+}
+
+.reward-chart__body {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  height: 300px;
+}
+
+.reward-chart__video-wrap {
+  flex: 0 0 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reward-chart__video {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+.reward-chart__canvas-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.reward-chart__canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
 }
 
 .supply-chain__header {
@@ -1357,7 +1621,8 @@ body {
 @media (max-width: 768px) {
   /* Padding reductions */
   .header { padding: 10px 16px; gap: 8px; }
-  .country-filter { padding: 8px 16px; }
+  .filter-bar { padding: 8px 16px; flex-wrap: wrap; gap: 8px; }
+  .filter-bar__separator { display: none; }
   .component-nav { padding: 0 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .component-nav::-webkit-scrollbar { display: none; }
   .component-btn { padding: 10px 10px; font-size: 10px; letter-spacing: 1px; white-space: nowrap; flex-shrink: 0; }
@@ -1366,6 +1631,9 @@ body {
   .component-info { padding: 16px; gap: 16px; }
   .component-desc { font-size: 14px; }
   .supply-chain { padding: 16px; }
+  .cap-matrix__cap-header { font-size: 8px; width: 48px; min-width: 40px; letter-spacing: 0.5px; }
+  .cap-matrix__tool-name { font-size: 10px; }
+  .cap-matrix__dot { width: 7px; height: 7px; }
   .company-info { padding: 16px; gap: 10px; }
   .company-desc { font-size: 14px; }
   .company-section { padding: 16px; }
@@ -1433,7 +1701,7 @@ body {
 @media (max-width: 480px) {
   /* Further padding reductions */
   .header { padding: 8px 12px; }
-  .country-filter { padding: 6px 12px; }
+  .filter-bar { padding: 6px 12px; }
   .component-btn { padding: 8px 8px; font-size: 9px; letter-spacing: 0.5px; }
   .oems-view { padding: 12px; }
   .oem-image-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }

@@ -1,29 +1,48 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import PLYViewer, { preloadPLY } from './components/PLYViewer';
 import SupplyChainGraph from './components/SupplyChainGraph';
-import { companies, relationships, componentCategories, vlaModels } from './data';
+import { companies, relationships, componentCategories, vlaModels, rewardModels, rewardComparisons, worldModels, vizTools, headDesigns } from './data';
+import type { RewardModelType, WorldModelType, VizToolType, FaceDisplayType } from './data';
+import RewardChart from './components/RewardChart';
 import './App.css';
 
 // Start fetching the skeleton model immediately on module load
 preloadPLY('/models/skeleton.ply');
 
-const TABS = [
-  { id: 'skeleton', label: 'Skeleton' },
-  { id: 'all_oems', label: 'All OEMs' },
-  { id: 'geopolitics', label: 'Geopolitics' },
-  { id: 'network', label: 'Network' },
-  { id: 'timeline', label: 'Buildout' },
-  { id: 'vlas', label: 'VLA' },
-  { id: 'sensors_general', label: 'Sensors' },
-  { id: 'compute', label: 'Compute' },
-  { id: 'batteries', label: 'Battery' },
-  { id: 'motors', label: 'Motors' },
-  { id: 'reducers', label: 'Reducers' },
-  { id: 'bearings', label: 'Bearings' },
-  { id: 'actuators_rotary', label: 'Actuators' },
-  { id: 'screws', label: 'Screws' },
-  { id: 'end_effectors', label: 'Hands' },
-  { id: 'pcbs', label: 'PCBs' },
+type TabGroup = 'overview' | 'hardware' | 'software' | 'hri';
+
+const TAB_GROUPS: { id: TabGroup; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'hardware', label: 'Hardware' },
+  { id: 'software', label: 'Software' },
+  { id: 'hri', label: 'HRI' },
+];
+
+const TABS: { id: string; label: string; group: TabGroup }[] = [
+  // Overview
+  { id: 'skeleton', label: 'Skeleton', group: 'overview' },
+  { id: 'all_oems', label: 'All OEMs', group: 'overview' },
+  { id: 'geopolitics', label: 'Geopolitics', group: 'overview' },
+  { id: 'network', label: 'Network', group: 'overview' },
+  { id: 'timeline', label: 'Buildout', group: 'overview' },
+  // Hardware
+  { id: 'sensors_general', label: 'Sensors', group: 'hardware' },
+  { id: 'compute', label: 'Compute', group: 'hardware' },
+  { id: 'batteries', label: 'Battery', group: 'hardware' },
+  { id: 'motors', label: 'Motors', group: 'hardware' },
+  { id: 'reducers', label: 'Reducers', group: 'hardware' },
+  { id: 'bearings', label: 'Bearings', group: 'hardware' },
+  { id: 'actuators_rotary', label: 'Actuators', group: 'hardware' },
+  { id: 'screws', label: 'Screws', group: 'hardware' },
+  { id: 'end_effectors', label: 'Hands', group: 'hardware' },
+  { id: 'pcbs', label: 'PCBs', group: 'hardware' },
+  // Software
+  { id: 'vlas', label: 'VLA', group: 'software' },
+  { id: 'reward_models', label: 'Reward Models', group: 'software' },
+  { id: 'world_models', label: 'World Models', group: 'software' },
+  { id: 'viz_tools', label: 'Viz Tools', group: 'software' },
+  // HRI
+  { id: 'displays', label: 'Displays', group: 'hri' },
 ];
 
 // Per-model spin speed multipliers (normalize perceived rotation speed)
@@ -420,6 +439,94 @@ function getVlaCompanyRelationshipLabel(type: 'proprietary' | 'partner') {
   return 'Partner Integration';
 }
 
+const VIZ_CAPABILITIES = [
+  'ROS 1', 'ROS 2', 'MCAP', 'Web', 'Desktop', 'Python', '3D', 'Time Series', 'Video', 'Fleet', 'Collab',
+] as const;
+
+const VIZ_CAPABILITY_MAP: Record<string, Set<string>> = {
+  foxglove:    new Set(['ROS 1', 'ROS 2', 'MCAP', 'Web', 'Desktop', 'Python', '3D', 'Time Series', 'Video', 'Fleet', 'Collab']),
+  rerun:       new Set(['ROS 2', 'MCAP', 'Web', 'Desktop', 'Python', '3D', 'Time Series', 'Video']),
+  formant:     new Set(['ROS 1', 'ROS 2', 'Web', 'Python', '3D', 'Time Series', 'Video', 'Fleet', 'Collab']),
+  rviz2:       new Set(['ROS 2', 'Desktop', '3D']),
+  meshcat:     new Set(['Web', 'Python', '3D']),
+  viser:       new Set(['Web', 'Python', '3D']),
+  vuer:        new Set(['Web', 'Python', '3D', 'Video']),
+  plotjuggler: new Set(['ROS 1', 'ROS 2', 'MCAP', 'Desktop', 'Time Series']),
+  datatamer:   new Set(['ROS 2', 'Time Series']),
+  roboto_ai:   new Set(['ROS 2', 'MCAP', 'Web', 'Python', 'Time Series', 'Video', 'Fleet']),
+};
+
+function getRewardModelTypeLabel(type: RewardModelType) {
+  if (type === 'trained') return 'Trained Model';
+  if (type === 'zero-shot') return 'Zero-Shot';
+  return 'Code Generation';
+}
+
+function getRewardModelOverview() {
+  return {
+    trackedModels: rewardModels.length,
+    trainedModels: rewardModels.filter((m) => m.modelType === 'trained').length,
+    zeroShotModels: rewardModels.filter((m) => m.modelType === 'zero-shot').length,
+    codeGenModels: rewardModels.filter((m) => m.modelType === 'code-gen').length,
+    developerCount: new Set(rewardModels.map((m) => m.developer)).size,
+  };
+}
+
+function getWorldModelTypeLabel(type: WorldModelType) {
+  if (type === 'video-generation') return 'Video Generation';
+  if (type === 'latent-dynamics') return 'Latent Dynamics';
+  if (type === 'rl-imagination') return 'RL / Imagination';
+  return 'Foundation Platform';
+}
+
+function getWorldModelOverview() {
+  return {
+    trackedModels: worldModels.length,
+    videoGenModels: worldModels.filter((m) => m.modelType === 'video-generation').length,
+    latentDynModels: worldModels.filter((m) => m.modelType === 'latent-dynamics').length,
+    rlImaginModels: worldModels.filter((m) => m.modelType === 'rl-imagination').length,
+    foundationModels: worldModels.filter((m) => m.modelType === 'foundation-platform').length,
+    developerCount: new Set(worldModels.map((m) => m.developer)).size,
+  };
+}
+
+function getFaceDisplayTypeLabel(type: FaceDisplayType) {
+  if (type === 'oled-screen') return 'OLED Screen';
+  if (type === 'status-screen') return 'Status Screen';
+  if (type === 'led-indicator') return 'LED Indicator';
+  if (type === 'no-display') return 'No Display';
+  return 'Concealed';
+}
+
+function getHeadDesignOverview() {
+  return {
+    trackedDesigns: headDesigns.length,
+    oledScreens: headDesigns.filter((d) => d.faceType === 'oled-screen').length,
+    statusScreens: headDesigns.filter((d) => d.faceType === 'status-screen').length,
+    ledIndicators: headDesigns.filter((d) => d.faceType === 'led-indicator').length,
+    noDisplay: headDesigns.filter((d) => d.faceType === 'no-display').length,
+    concealed: headDesigns.filter((d) => d.faceType === 'concealed').length,
+  };
+}
+
+function getVizToolTypeLabel(type: VizToolType) {
+  if (type === 'platform') return 'Platform';
+  if (type === '3d-viewer') return '3D Viewer';
+  if (type === 'time-series') return 'Time Series';
+  return 'Data & Analytics';
+}
+
+function getVizToolOverview() {
+  return {
+    trackedTools: vizTools.length,
+    platformTools: vizTools.filter((t) => t.toolType === 'platform').length,
+    viewerTools: vizTools.filter((t) => t.toolType === '3d-viewer').length,
+    timeSeriesTools: vizTools.filter((t) => t.toolType === 'time-series').length,
+    analyticsTools: vizTools.filter((t) => t.toolType === 'data-analytics').length,
+    developerCount: new Set(vizTools.map((t) => t.developer)).size,
+  };
+}
+
 function getVLAOverview() {
   const linkedOemIds = new Set(
     vlaModels.flatMap((model) => model.companyLinks.map((link) => link.companyId))
@@ -435,11 +542,21 @@ function getVLAOverview() {
   };
 }
 
-type CountryGroup = 'US' | 'CN' | 'OTHER' | null;
+type CountryGroup = 'US' | 'CN' | 'JP' | 'KR' | 'OTHER' | null;
 
+// Geopolitical grouping (US vs CN vs Other) — used for scoreboard analytics, supply chain bars, scenario cuts
 function getCountryGroup(country: string): 'US' | 'CN' | 'OTHER' {
   if (country === 'US') return 'US';
   if (country === 'CN') return 'CN';
+  return 'OTHER';
+}
+
+// Filter grouping — used for the country filter pills (distinguishes JP and KR)
+function getCountryFilterGroup(country: string): 'US' | 'CN' | 'JP' | 'KR' | 'OTHER' {
+  if (country === 'US') return 'US';
+  if (country === 'CN') return 'CN';
+  if (country === 'JP') return 'JP';
+  if (country === 'KR') return 'KR';
   return 'OTHER';
 }
 
@@ -497,7 +614,7 @@ function getTimelineData() {
       id: oem.id,
       name: oem.name,
       country: oem.country,
-      countryGroup: getCountryGroup(oem.country),
+      countryGroup: getCountryFilterGroup(oem.country),
       dateStr,
       dateNum,
       pct: Math.max(0, Math.min(100, pct)),
@@ -510,6 +627,8 @@ function getTimelineData() {
   const lanes: { group: string; label: string; rows: typeof rows }[] = [
     { group: 'US', label: 'United States', rows: rows.filter((r) => r.countryGroup === 'US') },
     { group: 'CN', label: 'China', rows: rows.filter((r) => r.countryGroup === 'CN') },
+    { group: 'JP', label: 'Japan', rows: rows.filter((r) => r.countryGroup === 'JP') },
+    { group: 'KR', label: 'South Korea', rows: rows.filter((r) => r.countryGroup === 'KR') },
     { group: 'OTHER', label: 'Rest of World', rows: rows.filter((r) => r.countryGroup === 'OTHER') },
   ].filter((l) => l.rows.length > 0);
 
@@ -673,15 +792,28 @@ const TYPE_DISPLAY: Record<string, string> = {
 export default function App() {
   const initialHash = useMemo(() => parseHash(), []);
   const [activeTab, setActiveTab] = useState(initialHash.tab || 'skeleton');
+  const activeTabGroup = TABS.find((t) => t.id === activeTab)?.group || 'overview';
   const [companyId, setCompanyId] = useState<string | null>(initialHash.company || null);
   const [actuatorType, setActuatorType] = useState<'linear' | 'rotary'>('linear');
   const [chainFocus, setChainFocus] = useState<string | null>(null);
   const [vlaFilter, setVlaFilter] = useState<'all' | 'open' | 'closed'>('all');
+  const [rewardFilter, setRewardFilter] = useState<'all' | RewardModelType>('all');
+  const [worldModelFilter, setWorldModelFilter] = useState<'all' | WorldModelType>('all');
+  const [vizToolFilter, setVizToolFilter] = useState<'all' | VizToolType>('all');
+  const [headDesignFilter, setHeadDesignFilter] = useState<'all' | FaceDisplayType>('all');
   const [countryFilter, setCountryFilter] = useState<CountryGroup>(null);
   const [cutCountries, setCutCountries] = useState<Set<string>>(new Set());
   const [cutCompanies, setCutCompanies] = useState<Set<string>>(new Set());
   const [activeScenarios, setActiveScenarios] = useState<Set<string>>(new Set());
   const [viewCount, setViewCount] = useState<number | null>(null);
+  const [likes, setLikes] = useState<Record<string, number>>({});
+  const [likedByMe, setLikedByMe] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('oem_likes') || '[]'));
+    } catch {
+      return new Set<string>();
+    }
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [smartAnswer, setSmartAnswer] = useState<{ answer: string; companyIds: string[] } | null>(null);
@@ -704,6 +836,11 @@ export default function App() {
   const [nlParsing, setNlParsing] = useState(false);
   const summaryCache = useRef<Map<string, string>>(new Map());
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const sortedOems = useMemo(
+    () => [...oems].sort((a, b) => (likes[b.id] || 0) - (likes[a.id] || 0)),
+    [likes],
+  );
 
   // Hash routing — update URL on state change
   useEffect(() => {
@@ -781,6 +918,10 @@ export default function App() {
     fetch('/api/views', { method: 'POST' })
       .then((r) => r.json())
       .then((d) => setViewCount(d.views))
+      .catch(() => {});
+    fetch('/api/likes')
+      .then((r) => r.json())
+      .then((d) => setLikes(d.likes || {}))
       .catch(() => {});
   }, []);
 
@@ -882,6 +1023,10 @@ export default function App() {
   const chain = useMemo(() => {
     if (activeTab === 'skeleton' || activeTab === 'all_oems' || activeTab === 'geopolitics') return null;
     if (activeTab === 'vlas') return null;
+    if (activeTab === 'reward_models') return null;
+    if (activeTab === 'world_models') return null;
+    if (activeTab === 'viz_tools') return null;
+    if (activeTab === 'displays') return null;
     if (activeTab === 'actuators_rotary') {
       return getComponentChain(actuatorType === 'linear' ? 'actuators_linear_only' : 'actuators_rotary_only');
     }
@@ -914,6 +1059,58 @@ export default function App() {
       .filter(Boolean) as typeof companies;
   }, [vlaFilter, filteredVlaModels]);
 
+  // Reward model state
+  const rewardOverview = useMemo(() => getRewardModelOverview(), []);
+
+  const focusedRewardModel = useMemo(
+    () => rewardModels.find((model) => model.id === chainFocus) || null,
+    [chainFocus]
+  );
+
+  const filteredRewardModels = useMemo(() => {
+    if (rewardFilter === 'all') return rewardModels;
+    return rewardModels.filter((m) => m.modelType === rewardFilter);
+  }, [rewardFilter]);
+
+  // World model state
+  const worldModelOverview = useMemo(() => getWorldModelOverview(), []);
+
+  const focusedWorldModel = useMemo(
+    () => worldModels.find((model) => model.id === chainFocus) || null,
+    [chainFocus]
+  );
+
+  const filteredWorldModels = useMemo(() => {
+    if (worldModelFilter === 'all') return worldModels;
+    return worldModels.filter((m) => m.modelType === worldModelFilter);
+  }, [worldModelFilter]);
+
+  // Viz tool state
+  const vizToolOverview = useMemo(() => getVizToolOverview(), []);
+
+  const focusedVizTool = useMemo(
+    () => vizTools.find((tool) => tool.id === chainFocus) || null,
+    [chainFocus]
+  );
+
+  const filteredVizTools = useMemo(() => {
+    if (vizToolFilter === 'all') return vizTools;
+    return vizTools.filter((t) => t.toolType === vizToolFilter);
+  }, [vizToolFilter]);
+
+  // Head design state
+  const headDesignOverview = useMemo(() => getHeadDesignOverview(), []);
+
+  const focusedHeadDesign = useMemo(
+    () => headDesigns.find((d) => d.id === chainFocus) || null,
+    [chainFocus]
+  );
+
+  const filteredHeadDesigns = useMemo(() => {
+    if (headDesignFilter === 'all') return headDesigns;
+    return headDesigns.filter((d) => d.faceType === headDesignFilter);
+  }, [headDesignFilter]);
+
   // Compute which entities are connected to the focused entity in the chain
   const connectedIds = useMemo(() => {
     if (!chainFocus || !chain) return null;
@@ -938,6 +1135,40 @@ export default function App() {
     setCompanyChat('');
     setCompanyChatAnswer(null);
   }, []);
+
+  const handleLike = useCallback((oemId: string) => {
+    const removing = likedByMe.has(oemId);
+    // Optimistic UI update
+    setLikes((prev) => ({ ...prev, [oemId]: Math.max(0, (prev[oemId] || 0) + (removing ? -1 : 1)) }));
+    setLikedByMe((prev) => {
+      const next = new Set(prev);
+      if (removing) next.delete(oemId); else next.add(oemId);
+      try { localStorage.setItem('oem_likes', JSON.stringify([...next])); } catch { /* private browsing */ }
+      return next;
+    });
+    fetch('/api/likes', {
+      method: removing ? 'DELETE' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oemId }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        // Server returned actual count — sync it (handles alreadyVoted case)
+        if (typeof data.likes === 'number') {
+          setLikes((prev) => ({ ...prev, [oemId]: data.likes }));
+        }
+        // If server says already voted, re-toggle the heart to "liked" state
+        if (data.alreadyVoted) {
+          setLikedByMe((prev) => {
+            const next = new Set(prev);
+            next.add(oemId);
+            try { localStorage.setItem('oem_likes', JSON.stringify([...next])); } catch { /* */ }
+            return next;
+          });
+        }
+      })
+      .catch(() => {});
+  }, [likedByMe]);
 
   const handleBackFromCompany = () => {
     setCompanyId(null);
@@ -1499,7 +1730,8 @@ export default function App() {
         </div>
       </header>
 
-      <div className="country-filter">
+      <div className="filter-bar">
+        <div className="country-filter">
           <button
             className={`country-pill ${countryFilter === null ? 'country-pill--active' : ''}`}
             onClick={() => setCountryFilter(null)}
@@ -1513,13 +1745,37 @@ export default function App() {
             onClick={() => setCountryFilter(countryFilter === 'CN' ? null : 'CN')}
           >China</button>
           <button
+            className={`country-pill ${countryFilter === 'JP' ? 'country-pill--active' : ''}`}
+            onClick={() => setCountryFilter(countryFilter === 'JP' ? null : 'JP')}
+          >Japan</button>
+          <button
+            className={`country-pill ${countryFilter === 'KR' ? 'country-pill--active' : ''}`}
+            onClick={() => setCountryFilter(countryFilter === 'KR' ? null : 'KR')}
+          >S. Korea</button>
+          <button
             className={`country-pill ${countryFilter === 'OTHER' ? 'country-pill--active' : ''}`}
             onClick={() => setCountryFilter(countryFilter === 'OTHER' ? null : 'OTHER')}
           >Other</button>
         </div>
 
+        <div className="filter-bar__separator"></div>
+
+        <div className="tab-group-nav">
+          {TAB_GROUPS.map((g) => (
+            <button
+              key={g.id}
+              className={`tab-group-pill ${activeTabGroup === g.id ? 'tab-group-pill--active' : ''}`}
+              onClick={() => {
+                const firstTab = TABS.find((t) => t.group === g.id);
+                if (firstTab) { setActiveTab(firstTab.id); setChainFocus(null); }
+              }}
+            >{g.label}</button>
+          ))}
+        </div>
+      </div>
+
       <nav className="component-nav">
-        {TABS.map((t) => {
+        {TABS.filter((t) => t.group === activeTabGroup).map((t) => {
           return (
             <button
               key={t.id}
@@ -1546,8 +1802,8 @@ export default function App() {
           return (
             <div className="oems-view">
               <div className="oem-image-grid">
-                {oems.map((c) => (
-                  <button key={c.id} className={`oem-image-card ${countryFilter && getCountryGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`} onClick={() => handleSelectCompany(c.id)}>
+                {sortedOems.map((c) => (
+                  <div key={c.id} className={`oem-image-card ${countryFilter && getCountryFilterGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`} onClick={() => handleSelectCompany(c.id)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') handleSelectCompany(c.id); }}>
                     <div className="oem-image-card__img">
                       {c.robotImage ? (
                         <img src={c.robotImage} alt={c.name} />
@@ -1557,12 +1813,19 @@ export default function App() {
                     </div>
                     <div className="oem-image-card__info">
                       <span className="oem-image-card__name">{c.name}</span>
+                      <button
+                        className={`oem-heart oem-heart--inline ${likedByMe.has(c.id) ? 'liked' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); handleLike(c.id); }}
+                        aria-label={likedByMe.has(c.id) ? 'Liked' : 'Like'}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill={likedByMe.has(c.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        <span className="oem-heart__count">{likes[c.id] || 0}</span>
+                      </button>
                       <span className="oem-image-card__country">{c.country}</span>
-                      {c.robotSpecs?.status === 'In Production' && (
-                        <span className="oem-image-card__status">In Production</span>
-                      )}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
 
@@ -2159,6 +2422,62 @@ export default function App() {
                         : `${vlaOverview.trackedModels} tracked models · ${vlaOverview.linkedOems} linked humanoid OEMs`}
                     </span>
                   </div>
+                ) : activeTab === 'reward_models' ? (
+                  <div className="vla-placeholder">
+                    <span className="vla-placeholder__eyebrow">
+                      {focusedRewardModel ? focusedRewardModel.developer : 'Robotic Reward Models'}
+                    </span>
+                    <span className="vla-placeholder__title">
+                      {focusedRewardModel ? focusedRewardModel.name : 'Reward Models'}
+                    </span>
+                    <span className="vla-placeholder__meta">
+                      {focusedRewardModel
+                        ? `${focusedRewardModel.country} · ${focusedRewardModel.release} · ${getRewardModelTypeLabel(focusedRewardModel.modelType)}`
+                        : `${rewardOverview.trackedModels} tracked models · ${rewardOverview.trainedModels} trained · ${rewardOverview.zeroShotModels} zero-shot · ${rewardOverview.codeGenModels} code-gen`}
+                    </span>
+                  </div>
+                ) : activeTab === 'world_models' ? (
+                  <div className="vla-placeholder">
+                    <span className="vla-placeholder__eyebrow">
+                      {focusedWorldModel ? focusedWorldModel.developer : 'Robotic World Models'}
+                    </span>
+                    <span className="vla-placeholder__title">
+                      {focusedWorldModel ? focusedWorldModel.name : 'World Models'}
+                    </span>
+                    <span className="vla-placeholder__meta">
+                      {focusedWorldModel
+                        ? `${focusedWorldModel.country} · ${focusedWorldModel.release} · ${getWorldModelTypeLabel(focusedWorldModel.modelType)}`
+                        : `${worldModelOverview.trackedModels} tracked · ${worldModelOverview.videoGenModels} video gen · ${worldModelOverview.latentDynModels} latent · ${worldModelOverview.rlImaginModels} RL/imagination · ${worldModelOverview.foundationModels} platform`}
+                    </span>
+                  </div>
+                ) : activeTab === 'viz_tools' ? (
+                  <div className="vla-placeholder">
+                    <span className="vla-placeholder__eyebrow">
+                      {focusedVizTool ? focusedVizTool.developer : 'Robotics Visualization Tools'}
+                    </span>
+                    <span className="vla-placeholder__title">
+                      {focusedVizTool ? focusedVizTool.name : 'Viz Tools'}
+                    </span>
+                    <span className="vla-placeholder__meta">
+                      {focusedVizTool
+                        ? `${focusedVizTool.country} · ${focusedVizTool.release} · ${getVizToolTypeLabel(focusedVizTool.toolType)}`
+                        : `${vizToolOverview.trackedTools} tracked · ${vizToolOverview.platformTools} platforms · ${vizToolOverview.viewerTools} 3D viewers · ${vizToolOverview.timeSeriesTools} time series · ${vizToolOverview.analyticsTools} analytics`}
+                    </span>
+                  </div>
+                ) : activeTab === 'displays' ? (
+                  <div className="vla-placeholder">
+                    <span className="vla-placeholder__eyebrow">
+                      {focusedHeadDesign ? focusedHeadDesign.developer : 'Humanoid Head & Display Designs'}
+                    </span>
+                    <span className="vla-placeholder__title">
+                      {focusedHeadDesign ? focusedHeadDesign.name : 'Displays'}
+                    </span>
+                    <span className="vla-placeholder__meta">
+                      {focusedHeadDesign
+                        ? `${focusedHeadDesign.country} · ${getFaceDisplayTypeLabel(focusedHeadDesign.faceType)} · ${focusedHeadDesign.headCameras} head cams`
+                        : `${headDesignOverview.trackedDesigns} tracked · ${headDesignOverview.oledScreens} OLED · ${headDesignOverview.statusScreens} status screen · ${headDesignOverview.ledIndicators} LED · ${headDesignOverview.noDisplay} none · ${headDesignOverview.concealed} concealed`}
+                    </span>
+                  </div>
                 ) : selectedComponent.plyModel ? (
                   <PLYViewer modelUrl={selectedComponent.plyModel} color="#1a1a1a" initialRotation={MODEL_ROTATIONS[selectedComponent.plyModel]} spinSpeed={MODEL_SPIN[selectedComponent.plyModel]} scale={MODEL_SCALE[selectedComponent.plyModel]} />
                 ) : (
@@ -2173,35 +2492,128 @@ export default function App() {
                     ? ACTUATOR_INFO[actuatorType].description
                     : activeTab === 'vlas' && focusedVlaModel
                       ? focusedVlaModel.description
-                      : selectedComponent.description;
+                      : activeTab === 'reward_models' && focusedRewardModel
+                        ? focusedRewardModel.description
+                        : activeTab === 'world_models' && focusedWorldModel
+                          ? focusedWorldModel.description
+                          : activeTab === 'viz_tools' && focusedVizTool
+                            ? focusedVizTool.description
+                            : activeTab === 'displays' && focusedHeadDesign
+                              ? focusedHeadDesign.description
+                              : selectedComponent.description;
                   const metrics = isActuator
                     ? ACTUATOR_INFO[actuatorType].keyMetrics
-                    : activeTab === 'vlas'
-                      ? focusedVlaModel
+                    : activeTab === 'reward_models'
+                      ? focusedRewardModel
                         ? {
-                            Developer: focusedVlaModel.developer,
-                            'Relationship Type': getVlaRelationshipTypeLabel(focusedVlaModel.relationshipType),
-                            Release: focusedVlaModel.release,
-                            Availability: focusedVlaModel.availability,
-                            Focus: focusedVlaModel.focus,
-                            'Linked OEMs': focusedVlaModel.companyLinks.length
-                              ? focusedVlaModel.companyLinks
-                                  .map((link) => {
-                                    const company = companies.find((candidate) => candidate.id === link.companyId);
-                                    return company ? `${company.name} (${getVlaCompanyRelationshipLabel(link.relationship)})` : null;
-                                  })
-                                  .filter(Boolean)
-                                  .join(', ')
-                              : 'None tracked in current dataset',
-                            Sources: focusedVlaModel.sources.map((source) => source.label).join(' · '),
+                            Developer: focusedRewardModel.developer,
+                            Type: getRewardModelTypeLabel(focusedRewardModel.modelType),
+                            Backbone: focusedRewardModel.backbone,
+                            Parameters: focusedRewardModel.params,
+                            Release: focusedRewardModel.release,
+                            Venue: focusedRewardModel.venue,
+                            Availability: focusedRewardModel.availability,
+                            Focus: focusedRewardModel.focus,
+                            Sources: focusedRewardModel.sources.map((s) => s.label).join(' · '),
                           }
                         : {
-                            'Tracked Models': `${vlaOverview.trackedModels} models (open + proprietary)`,
-                            'Linked OEMs': `${vlaOverview.linkedOems} humanoid OEMs with VLA integrations`,
-                            'Model Developers': `${vlaOverview.creatorCount} organizations building VLAs`,
-                            'Standalone Models': `${vlaOverview.standaloneModels} models without direct OEM ties`,
+                            'Tracked Models': `${rewardOverview.trackedModels} reward models`,
+                            'Trained Models': `${rewardOverview.trainedModels} with open weights`,
+                            'Zero-Shot Methods': `${rewardOverview.zeroShotModels} prompting-based approaches`,
+                            'Code Generation': `${rewardOverview.codeGenModels} LLM reward code generators`,
+                            Developers: `${rewardOverview.developerCount} organizations`,
                           }
-                      : selectedComponent.keyMetrics;
+                      : activeTab === 'world_models'
+                        ? focusedWorldModel
+                          ? {
+                              Developer: focusedWorldModel.developer,
+                              Type: getWorldModelTypeLabel(focusedWorldModel.modelType),
+                              ...(focusedWorldModel.backbone ? { Backbone: focusedWorldModel.backbone } : {}),
+                              ...(focusedWorldModel.params ? { Parameters: focusedWorldModel.params } : {}),
+                              ...(focusedWorldModel.trainingData ? { 'Training Data': focusedWorldModel.trainingData } : {}),
+                              Release: focusedWorldModel.release,
+                              Venue: focusedWorldModel.venue,
+                              Availability: focusedWorldModel.availability,
+                              Focus: focusedWorldModel.focus,
+                              Sources: focusedWorldModel.sources.map((s) => s.label).join(' · '),
+                            }
+                          : {
+                              'Tracked Models': `${worldModelOverview.trackedModels} world models`,
+                              'Video Generation': `${worldModelOverview.videoGenModels} video prediction models`,
+                              'Latent Dynamics': `${worldModelOverview.latentDynModels} latent-space models`,
+                              'RL / Imagination': `${worldModelOverview.rlImaginModels} imagination-based RL agents`,
+                              'Foundation Platforms': `${worldModelOverview.foundationModels} full platforms`,
+                              Developers: `${worldModelOverview.developerCount} organizations`,
+                            }
+                        : activeTab === 'viz_tools'
+                          ? focusedVizTool
+                            ? {
+                                Developer: focusedVizTool.developer,
+                                Type: getVizToolTypeLabel(focusedVizTool.toolType),
+                                Language: focusedVizTool.language,
+                                Frameworks: focusedVizTool.frameworks,
+                                Deployment: focusedVizTool.deployment,
+                                License: focusedVizTool.license,
+                                Release: focusedVizTool.release,
+                                Focus: focusedVizTool.focus,
+                                Sources: focusedVizTool.sources.map((s) => s.label).join(' · '),
+                              }
+                            : {
+                                'Tracked Tools': `${vizToolOverview.trackedTools} visualization tools`,
+                                Platforms: `${vizToolOverview.platformTools} full observability platforms`,
+                                '3D Viewers': `${vizToolOverview.viewerTools} lightweight 3D viewers`,
+                                'Time Series': `${vizToolOverview.timeSeriesTools} time series / logging tools`,
+                                'Data & Analytics': `${vizToolOverview.analyticsTools} AI-powered analytics`,
+                                Developers: `${vizToolOverview.developerCount} organizations`,
+                              }
+                          : activeTab === 'displays'
+                            ? focusedHeadDesign
+                              ? {
+                                  Developer: focusedHeadDesign.developer,
+                                  'Face Type': getFaceDisplayTypeLabel(focusedHeadDesign.faceType),
+                                  'Display Tech': focusedHeadDesign.displayTech,
+                                  'Head Cameras': focusedHeadDesign.headCameras,
+                                  'Total Cameras': focusedHeadDesign.totalCameras,
+                                  'Depth Approach': focusedHeadDesign.depthApproach,
+                                  LiDAR: focusedHeadDesign.lidar,
+                                  Audio: focusedHeadDesign.audioSystem,
+                                  'Interactive Features': focusedHeadDesign.interactiveFeatures,
+                                  Sources: focusedHeadDesign.sources.map((s) => s.label).join(' · '),
+                                }
+                              : {
+                                  'Tracked Designs': `${headDesignOverview.trackedDesigns} head/face designs`,
+                                  'OLED Screen': `${headDesignOverview.oledScreens} full expression displays`,
+                                  'Status Screen': `${headDesignOverview.statusScreens} icon/emotion screens`,
+                                  'LED Indicator': `${headDesignOverview.ledIndicators} LED-based signaling`,
+                                  'No Display': `${headDesignOverview.noDisplay} pure sensor pods`,
+                                  Concealed: `${headDesignOverview.concealed} hidden/decorative`,
+                                }
+                            : activeTab === 'vlas'
+                            ? focusedVlaModel
+                              ? {
+                                  Developer: focusedVlaModel.developer,
+                                  'Relationship Type': getVlaRelationshipTypeLabel(focusedVlaModel.relationshipType),
+                                Release: focusedVlaModel.release,
+                                Availability: focusedVlaModel.availability,
+                                Focus: focusedVlaModel.focus,
+                                'Linked OEMs': focusedVlaModel.companyLinks.length
+                                  ? focusedVlaModel.companyLinks
+                                      .map((link) => {
+                                        const company = companies.find((candidate) => candidate.id === link.companyId);
+                                        return company ? `${company.name} (${getVlaCompanyRelationshipLabel(link.relationship)})` : null;
+                                      })
+                                      .filter(Boolean)
+                                      .join(', ')
+                                  : 'None tracked in current dataset',
+                                Sources: focusedVlaModel.sources.map((source) => source.label).join(' · '),
+                              }
+                            : {
+                                'Tracked Models': `${vlaOverview.trackedModels} models (open + proprietary)`,
+                                'Linked OEMs': `${vlaOverview.linkedOems} humanoid OEMs with VLA integrations`,
+                                'Model Developers': `${vlaOverview.creatorCount} organizations building VLAs`,
+                                'Standalone Models': `${vlaOverview.standaloneModels} models without direct OEM ties`,
+                              }
+                          : selectedComponent.keyMetrics;
 
                   return (
                     <>
@@ -2254,7 +2666,7 @@ export default function App() {
                     {filteredVlaModels.map((model) => (
                       <button
                         key={model.id}
-                        className={`chain-entity ${focusedVlaModel && focusedVlaModel.id !== model.id ? 'chain-entity--dim' : ''} ${focusedVlaModel?.id === model.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryGroup(model.country) !== countryFilter ? 'geo-dim' : ''}`}
+                        className={`chain-entity ${focusedVlaModel && focusedVlaModel.id !== model.id ? 'chain-entity--dim' : ''} ${focusedVlaModel?.id === model.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(model.country) !== countryFilter ? 'geo-dim' : ''}`}
                         onClick={() => setChainFocus((prev) => prev === model.id ? null : model.id)}
                       >
                         <span className="chain-name">{model.name}</span>
@@ -2271,7 +2683,7 @@ export default function App() {
                     {linkedVlaOems.length > 0 ? linkedVlaOems.map((company) => (
                       <button
                         key={company.id}
-                        className={`chain-entity ${focusedVlaModel && !focusedVlaOemIds.has(company.id) ? 'chain-entity--dim' : ''} ${countryFilter && getCountryGroup(company.country) !== countryFilter ? 'geo-dim' : ''}`}
+                        className={`chain-entity ${focusedVlaModel && !focusedVlaOemIds.has(company.id) ? 'chain-entity--dim' : ''} ${countryFilter && getCountryFilterGroup(company.country) !== countryFilter ? 'geo-dim' : ''}`}
                         onClick={() => handleSelectCompany(company.id)}
                       >
                         <span className="chain-name">{company.name}</span>
@@ -2297,6 +2709,208 @@ export default function App() {
               </div>
             )}
 
+            {activeTab === 'reward_models' && (
+              <div className="supply-chain">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Reward Comparison</h3>
+                </div>
+                <RewardChart comparisons={rewardComparisons} />
+              </div>
+            )}
+
+            {activeTab === 'reward_models' && (
+              <div className="supply-chain">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Model Directory</h3>
+                  <div className="vla-filters">
+                    <button className={`country-pill ${rewardFilter === 'all' ? 'country-pill--active' : ''}`} onClick={() => setRewardFilter('all')}>All</button>
+                    <button className={`country-pill ${rewardFilter === 'trained' ? 'country-pill--active' : ''}`} onClick={() => setRewardFilter(rewardFilter === 'trained' ? 'all' : 'trained')}>Trained</button>
+                    <button className={`country-pill ${rewardFilter === 'zero-shot' ? 'country-pill--active' : ''}`} onClick={() => setRewardFilter(rewardFilter === 'zero-shot' ? 'all' : 'zero-shot')}>Zero-Shot</button>
+                    <button className={`country-pill ${rewardFilter === 'code-gen' ? 'country-pill--active' : ''}`} onClick={() => setRewardFilter(rewardFilter === 'code-gen' ? 'all' : 'code-gen')}>Code Gen</button>
+                    {focusedRewardModel && (
+                      <button className="chain-clear" onClick={() => setChainFocus(null)}>
+                        CLEAR FILTER
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="chain-flow">
+                  <div className="chain-tier">
+                    <div className="chain-tier-label">Models</div>
+                    {filteredRewardModels.map((model) => (
+                      <button
+                        key={model.id}
+                        className={`chain-entity ${focusedRewardModel && focusedRewardModel.id !== model.id ? 'chain-entity--dim' : ''} ${focusedRewardModel?.id === model.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(model.country) !== countryFilter ? 'geo-dim' : ''}`}
+                        onClick={() => setChainFocus((prev) => prev === model.id ? null : model.id)}
+                      >
+                        <span className="chain-name">{model.name}</span>
+                        <span className="chain-country">{model.country}</span>
+                        <span className="chain-share">
+                          {model.developer} · {getRewardModelTypeLabel(model.modelType)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'world_models' && (
+              <div className="supply-chain">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Model Directory</h3>
+                  <div className="vla-filters">
+                    <button className={`country-pill ${worldModelFilter === 'all' ? 'country-pill--active' : ''}`} onClick={() => setWorldModelFilter('all')}>All</button>
+                    <button className={`country-pill ${worldModelFilter === 'video-generation' ? 'country-pill--active' : ''}`} onClick={() => setWorldModelFilter(worldModelFilter === 'video-generation' ? 'all' : 'video-generation')}>Video Gen</button>
+                    <button className={`country-pill ${worldModelFilter === 'latent-dynamics' ? 'country-pill--active' : ''}`} onClick={() => setWorldModelFilter(worldModelFilter === 'latent-dynamics' ? 'all' : 'latent-dynamics')}>Latent Dynamics</button>
+                    <button className={`country-pill ${worldModelFilter === 'rl-imagination' ? 'country-pill--active' : ''}`} onClick={() => setWorldModelFilter(worldModelFilter === 'rl-imagination' ? 'all' : 'rl-imagination')}>RL / Imagination</button>
+                    <button className={`country-pill ${worldModelFilter === 'foundation-platform' ? 'country-pill--active' : ''}`} onClick={() => setWorldModelFilter(worldModelFilter === 'foundation-platform' ? 'all' : 'foundation-platform')}>Platform</button>
+                    {focusedWorldModel && (
+                      <button className="chain-clear" onClick={() => setChainFocus(null)}>
+                        CLEAR FILTER
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="chain-flow">
+                  <div className="chain-tier">
+                    <div className="chain-tier-label">Models</div>
+                    {filteredWorldModels.map((model) => (
+                      <button
+                        key={model.id}
+                        className={`chain-entity ${focusedWorldModel && focusedWorldModel.id !== model.id ? 'chain-entity--dim' : ''} ${focusedWorldModel?.id === model.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(model.country) !== countryFilter ? 'geo-dim' : ''}`}
+                        onClick={() => setChainFocus((prev) => prev === model.id ? null : model.id)}
+                      >
+                        <span className="chain-name">{model.name}</span>
+                        <span className="chain-country">{model.country}</span>
+                        <span className="chain-share">
+                          {model.developer} · {getWorldModelTypeLabel(model.modelType)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'viz_tools' && (
+              <div className="supply-chain">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Capability Matrix</h3>
+                </div>
+                <div className="cap-matrix">
+                  <table className="cap-matrix__table">
+                    <thead>
+                      <tr>
+                        <th className="cap-matrix__tool-header">Tool</th>
+                        {VIZ_CAPABILITIES.map((cap) => (
+                          <th key={cap} className="cap-matrix__cap-header"><span>{cap}</span></th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {vizTools.map((tool) => {
+                        const caps = VIZ_CAPABILITY_MAP[tool.id] || new Set();
+                        const isFocused = focusedVizTool?.id === tool.id;
+                        const isDim = focusedVizTool && !isFocused;
+                        return (
+                          <tr
+                            key={tool.id}
+                            className={`cap-matrix__row ${isFocused ? 'cap-matrix__row--focused' : ''} ${isDim ? 'cap-matrix__row--dim' : ''}`}
+                            onClick={() => setChainFocus((prev) => prev === tool.id ? null : tool.id)}
+                          >
+                            <td className="cap-matrix__tool-name">{tool.name}</td>
+                            {VIZ_CAPABILITIES.map((cap) => (
+                              <td key={cap} className="cap-matrix__cell">
+                                <span className={`cap-matrix__dot ${caps.has(cap) ? 'cap-matrix__dot--on' : ''}`} />
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'viz_tools' && (
+              <div className="supply-chain">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Tool Directory</h3>
+                  <div className="vla-filters">
+                    <button className={`country-pill ${vizToolFilter === 'all' ? 'country-pill--active' : ''}`} onClick={() => setVizToolFilter('all')}>All</button>
+                    <button className={`country-pill ${vizToolFilter === 'platform' ? 'country-pill--active' : ''}`} onClick={() => setVizToolFilter(vizToolFilter === 'platform' ? 'all' : 'platform')}>Platform</button>
+                    <button className={`country-pill ${vizToolFilter === '3d-viewer' ? 'country-pill--active' : ''}`} onClick={() => setVizToolFilter(vizToolFilter === '3d-viewer' ? 'all' : '3d-viewer')}>3D Viewer</button>
+                    <button className={`country-pill ${vizToolFilter === 'time-series' ? 'country-pill--active' : ''}`} onClick={() => setVizToolFilter(vizToolFilter === 'time-series' ? 'all' : 'time-series')}>Time Series</button>
+                    <button className={`country-pill ${vizToolFilter === 'data-analytics' ? 'country-pill--active' : ''}`} onClick={() => setVizToolFilter(vizToolFilter === 'data-analytics' ? 'all' : 'data-analytics')}>Analytics</button>
+                    {focusedVizTool && (
+                      <button className="chain-clear" onClick={() => setChainFocus(null)}>
+                        CLEAR FILTER
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="chain-flow">
+                  <div className="chain-tier">
+                    <div className="chain-tier-label">Tools</div>
+                    {filteredVizTools.map((tool) => (
+                      <button
+                        key={tool.id}
+                        className={`chain-entity ${focusedVizTool && focusedVizTool.id !== tool.id ? 'chain-entity--dim' : ''} ${focusedVizTool?.id === tool.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(tool.country) !== countryFilter ? 'geo-dim' : ''}`}
+                        onClick={() => setChainFocus((prev) => prev === tool.id ? null : tool.id)}
+                      >
+                        <span className="chain-name">{tool.name}</span>
+                        <span className="chain-country">{tool.country}</span>
+                        <span className="chain-share">
+                          {tool.developer} · {getVizToolTypeLabel(tool.toolType)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'displays' && (
+              <div className="supply-chain">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Design Directory</h3>
+                  <div className="vla-filters">
+                    <button className={`country-pill ${headDesignFilter === 'all' ? 'country-pill--active' : ''}`} onClick={() => setHeadDesignFilter('all')}>All</button>
+                    <button className={`country-pill ${headDesignFilter === 'oled-screen' ? 'country-pill--active' : ''}`} onClick={() => setHeadDesignFilter(headDesignFilter === 'oled-screen' ? 'all' : 'oled-screen')}>OLED</button>
+                    <button className={`country-pill ${headDesignFilter === 'status-screen' ? 'country-pill--active' : ''}`} onClick={() => setHeadDesignFilter(headDesignFilter === 'status-screen' ? 'all' : 'status-screen')}>Status Screen</button>
+                    <button className={`country-pill ${headDesignFilter === 'led-indicator' ? 'country-pill--active' : ''}`} onClick={() => setHeadDesignFilter(headDesignFilter === 'led-indicator' ? 'all' : 'led-indicator')}>LED</button>
+                    <button className={`country-pill ${headDesignFilter === 'no-display' ? 'country-pill--active' : ''}`} onClick={() => setHeadDesignFilter(headDesignFilter === 'no-display' ? 'all' : 'no-display')}>None</button>
+                    <button className={`country-pill ${headDesignFilter === 'concealed' ? 'country-pill--active' : ''}`} onClick={() => setHeadDesignFilter(headDesignFilter === 'concealed' ? 'all' : 'concealed')}>Concealed</button>
+                    {focusedHeadDesign && (
+                      <button className="chain-clear" onClick={() => setChainFocus(null)}>
+                        CLEAR FILTER
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="chain-flow">
+                  <div className="chain-tier">
+                    <div className="chain-tier-label">Designs</div>
+                    {filteredHeadDesigns.map((design) => (
+                      <button
+                        key={design.id}
+                        className={`chain-entity ${focusedHeadDesign && focusedHeadDesign.id !== design.id ? 'chain-entity--dim' : ''} ${focusedHeadDesign?.id === design.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(design.country) !== countryFilter ? 'geo-dim' : ''}`}
+                        onClick={() => setChainFocus((prev) => prev === design.id ? null : design.id)}
+                      >
+                        <span className="chain-name">{design.name}</span>
+                        <span className="chain-country">{design.country}</span>
+                        <span className="chain-share">
+                          {design.developer} · {getFaceDisplayTypeLabel(design.faceType)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {chain && (chain.upstream.length > 0 || chain.suppliers.length > 0 || chain.oems.length > 0) && (
               <div className="supply-chain">
                 <div className="supply-chain__header">
@@ -2314,7 +2928,7 @@ export default function App() {
                       {chain.upstream.map((c) => c && (
                         <button
                           key={c.id}
-                          className={`chain-entity ${connectedIds && !connectedIds.has(c.id) ? 'chain-entity--dim' : ''} ${chainFocus === c.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`}
+                          className={`chain-entity ${connectedIds && !connectedIds.has(c.id) ? 'chain-entity--dim' : ''} ${chainFocus === c.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`}
                           onClick={(e) => {
                             if (chainFocus === c.id) { setChainFocus(null); }
                             else if (chainFocus) { setChainFocus(c.id); }
@@ -2337,7 +2951,7 @@ export default function App() {
                       {chain.suppliers.map((c) => c && (
                         <button
                           key={c.id}
-                          className={`chain-entity ${connectedIds && !connectedIds.has(c.id) ? 'chain-entity--dim' : ''} ${chainFocus === c.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`}
+                          className={`chain-entity ${connectedIds && !connectedIds.has(c.id) ? 'chain-entity--dim' : ''} ${chainFocus === c.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`}
                           onClick={() => {
                             if (chainFocus === c.id) { setChainFocus(null); }
                             else { setChainFocus(c.id); }
@@ -2360,7 +2974,7 @@ export default function App() {
                       {chain.oems.map((c) => c && (
                         <button
                           key={c.id}
-                          className={`chain-entity ${connectedIds && !connectedIds.has(c.id) ? 'chain-entity--dim' : ''} ${chainFocus === c.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`}
+                          className={`chain-entity ${connectedIds && !connectedIds.has(c.id) ? 'chain-entity--dim' : ''} ${chainFocus === c.id ? 'chain-entity--focused' : ''} ${countryFilter && getCountryFilterGroup(c.country) !== countryFilter ? 'geo-dim' : ''}`}
                           onClick={() => {
                             if (chainFocus === c.id) { setChainFocus(null); }
                             else { setChainFocus(c.id); }

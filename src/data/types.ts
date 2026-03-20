@@ -1,4 +1,4 @@
-export type Country = 'US' | 'CN' | 'JP' | 'DE' | 'CH' | 'KR' | 'TW' | 'NL' | 'IL' | 'NO' | 'AU' | 'CA' | 'PL' | 'IN' | 'GLOBAL';
+export type Country = 'US' | 'CN' | 'JP' | 'DE' | 'CH' | 'KR' | 'TW' | 'NL' | 'IL' | 'NO' | 'AU' | 'CA' | 'PL' | 'SE' | 'IN' | 'GLOBAL';
 
 export type EntityType = 'oem' | 'tier1_supplier' | 'component_maker' | 'raw_material' | 'ai_compute';
 
@@ -70,6 +70,29 @@ export interface ComponentCategory {
   keyMetrics?: Record<string, string>;
 }
 
+export type RewardModelType = 'trained' | 'zero-shot' | 'code-gen';
+
+export interface RewardModelSourceRef {
+  label: string;
+  url: string;
+}
+
+export interface RewardModel {
+  id: string;
+  name: string;
+  developer: string;
+  country: Country;
+  modelType: RewardModelType;
+  description: string;
+  backbone: string;
+  params: string;
+  release: string;
+  venue: string;
+  availability: string;
+  focus: string;
+  sources: RewardModelSourceRef[];
+}
+
 export interface VLASourceRef {
   label: string;
   url: string;
@@ -82,6 +105,77 @@ export interface VLACompanyLink {
   companyId: string;
   relationship: VLACompanyRelationshipType;
   sources: VLASourceRef[];
+}
+
+export type WorldModelType = 'video-generation' | 'latent-dynamics' | 'rl-imagination' | 'foundation-platform';
+
+export interface WorldModelSourceRef {
+  label: string;
+  url: string;
+}
+
+export interface WorldModel {
+  id: string;
+  name: string;
+  developer: string;
+  country: Country;
+  modelType: WorldModelType;
+  description: string;
+  backbone?: string;
+  params?: string;
+  trainingData?: string;
+  release: string;
+  venue: string;
+  availability: string;
+  focus: string;
+  sources: WorldModelSourceRef[];
+}
+
+export type FaceDisplayType = 'oled-screen' | 'status-screen' | 'led-indicator' | 'no-display' | 'concealed';
+
+export interface HeadDesignSourceRef {
+  label: string;
+  url: string;
+}
+
+export interface HeadDesign {
+  id: string;
+  name: string;
+  developer: string;
+  country: Country;
+  faceType: FaceDisplayType;
+  description: string;
+  displayTech: string;
+  headCameras: string;
+  totalCameras: string;
+  depthApproach: string;
+  lidar: string;
+  audioSystem: string;
+  interactiveFeatures: string;
+  sources: HeadDesignSourceRef[];
+}
+
+export type VizToolType = 'platform' | '3d-viewer' | 'time-series' | 'data-analytics';
+
+export interface VizToolSourceRef {
+  label: string;
+  url: string;
+}
+
+export interface VizTool {
+  id: string;
+  name: string;
+  developer: string;
+  country: Country;
+  toolType: VizToolType;
+  description: string;
+  language: string;
+  frameworks: string;
+  deployment: string;
+  license: string;
+  release: string;
+  focus: string;
+  sources: VizToolSourceRef[];
 }
 
 export interface VLAModel {

@@ -329,6 +329,13 @@ export const vlaModels: VLAModel[] = [
           { label: 'NVIDIA: Physics AI partner ecosystem', url: 'https://nvidianews.nvidia.com/news/nvidia-isaac-gr00t-n1-open-humanoid-robot-foundation-model-simulation-frameworks' },
         ],
       },
+      {
+        companyId: 'fauna',
+        relationship: 'partner',
+        sources: [
+          { label: 'Fauna Sprout Technical Report (IsaacSim/Lab + GR00T refs)', url: 'https://arxiv.org/abs/2601.18963' },
+        ],
+      },
     ],
   },
   {
@@ -492,5 +499,23 @@ export const vlaModels: VLAModel[] = [
         ],
       },
     ],
+  },
+  {
+    id: 'molmoact',
+    name: 'MolmoAct',
+    developer: 'Allen Institute for AI (Ai2)',
+    country: 'US',
+    relationshipType: 'open',
+    description: 'The first Action Reasoning Model (ARM) — a new class of VLA that "thinks" in 3D by grounding reasoning through depth-aware perception tokens rather than text chain-of-thought. Three-stage autoregressive pipeline: depth perception (100 VQVAE tokens encoding geometric structure), visual trace planning (1-5 waypoints in image space, embodiment-agnostic), and action decoding (7-DoF discretized control). Trained on 26.3M samples across 93 manipulation tasks. State-of-the-art on SimplerEnv (70.5% zero-shot) and LIBERO (86.6% avg), outperforming π0-FAST by +10% single-arm, +22.7% bimanual, and +23.3% OOD in real-world tests — with 35x less training data than GR00T N1.5.',
+    release: '2025',
+    focus: 'Action reasoning via depth perception + visual trace planning',
+    availability: 'Open weights + code + data (Apache 2.0)',
+    sources: [
+      { label: 'MolmoAct arXiv', url: 'https://arxiv.org/abs/2508.07917' },
+      { label: 'GitHub', url: 'https://github.com/allenai/MolmoAct' },
+      { label: 'HuggingFace Models', url: 'https://huggingface.co/collections/allenai/molmoact-689697591a3936fba38174d7' },
+      { label: 'Ai2 Blog', url: 'https://allenai.org/blog/molmoact' },
+    ],
+    companyLinks: [],
   },
 ];

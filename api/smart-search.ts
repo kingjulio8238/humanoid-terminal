@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applySecurity, safeError } from './_middleware';
+import { applySecurity, safeError } from './_middleware.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (applySecurity(req, res)) return;

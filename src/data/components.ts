@@ -135,6 +135,42 @@ export const componentCategories: ComponentCategory[] = [
     },
   },
   {
+    id: 'reward_models',
+    name: 'Reward Models',
+    description: 'Reward models evaluate how well a robot is performing a task by scoring video trajectories against language instructions. They provide the dense reward signals that VLA policies need for reinforcement learning, data filtering, and quality estimation — bridging the gap between human intent and robot behavior.',
+    bottleneck: false,
+    keyMetrics: {
+      'Core Input': 'Video trajectory + language instruction',
+      'Primary Output': 'Per-frame progress score (0-1), trajectory preference',
+      'Key Metric': 'VOC (Value-Order Correlation)',
+      'Current Focus': 'Dense reward for manipulation policy training',
+    },
+  },
+  {
+    id: 'viz_tools',
+    name: 'Visualization Tools',
+    description: 'Visualization tools let robotics engineers see, debug, and understand what their robots are doing. From 3D scene viewers and time series plotters to full observability platforms, these tools turn raw sensor data, logs, and telemetry into actionable insight — accelerating the development loop from data collection through fleet deployment.',
+    bottleneck: false,
+    keyMetrics: {
+      'Core Function': 'Visualize, debug, and inspect robot data',
+      'Input Types': '3D scenes, point clouds, images, video, time series, logs',
+      'Deployment Modes': 'Desktop, web, cloud, on-robot, VR/AR',
+      'Key Trend': 'Platform convergence — observability + ML pipeline integration',
+    },
+  },
+  {
+    id: 'world_models',
+    name: 'World Models',
+    description: 'World models learn to simulate how the physical world evolves in response to robot actions. By predicting future states — as video frames, latent representations, or learned dynamics — they let robots practice tasks "in imagination" before acting in reality. This dramatically reduces the need for expensive real-world data collection and enables safer, faster policy training.',
+    bottleneck: false,
+    keyMetrics: {
+      'Core Function': 'Predict future world state from actions',
+      'Output Modalities': 'Video frames, latent states, dynamics rollouts',
+      'Key Benefit': 'Train policies in imagination, not reality',
+      'Current Focus': 'Cross-embodiment generalization + synthetic data',
+    },
+  },
+  {
     id: 'pcbs',
     name: 'PCBs',
     description: 'Printed circuit boards for power distribution, sensor integration, and compute interconnects.',
@@ -177,6 +213,18 @@ export const componentCategories: ComponentCategory[] = [
       'DOF Range': '3-finger gripper to 22-DOF hand',
       'Drive Types': 'Tendon, Motor+Gear, Dual Gripper',
       'Emerging': 'Sharpa Robotics (from Hesai founders)',
+    },
+  },
+  {
+    id: 'displays',
+    name: 'Displays',
+    description: 'The face of the humanoid — display screens, LED indicators, cameras, and sensors that define how a robot perceives the world and communicates with humans. Design approaches range from full OLED expression screens to minimal LED status lights to deliberately faceless sensor pods, reflecting deep trade-offs between anthropomorphism, uncanny valley avoidance, and functional perception.',
+    bottleneck: false,
+    keyMetrics: {
+      'Display Approaches': 'OLED screen, status screen, LED indicator, concealed, none',
+      'Camera Range': '0–8 head-mounted cameras across OEMs',
+      'Key Tension': 'Anthropomorphism vs uncanny valley vs pure function',
+      'Trend': 'Vision-only perception (dropping LiDAR) + AI depth estimation',
     },
   },
 ];
