@@ -104,6 +104,25 @@ export const worldModels: WorldModel[] = [
       { label: 'Project Page', url: 'https://universal-simulator.github.io/unisim/' },
     ],
   },
+  {
+    id: 'rhoda_dva',
+    name: 'FutureVision (DVA)',
+    developer: 'Rhoda AI',
+    country: 'US',
+    modelType: 'video-generation',
+    description:
+      'Direct Video-Action model that predicts future video frames then converts them to motor torques via an inverse dynamics model — explicitly not a VLA. Causal Video Model pretrained on hundreds of millions of internet videos to learn motion, physics, and 3D structure. Natively processes hundreds of video frames (vs a few frames for typical VLAs). Learns new manipulation tasks from only 10-20 hours of teleoperation data. Demonstrated 1.5 hours continuous autonomous operation in automotive factory. $450M raised at $1.7B valuation, founded by serial entrepreneur Jagdeep Singh (Infinera, QuantumScape, Raxium).',
+    backbone: 'Causal Video Model + Inverse Dynamics Model',
+    trainingData: 'Hundreds of millions of internet videos + 10-20 hrs robot data per task',
+    release: '2026',
+    venue: 'Rhoda AI',
+    availability: 'Commercial (enterprise licensing)',
+    focus: 'Video-predictive robot control for manufacturing and logistics',
+    sources: [
+      { label: 'Rhoda AI', url: 'https://www.rhoda.ai/' },
+      { label: 'DVA Research', url: 'https://www.rhoda.ai/research/direct-video-action' },
+    ],
+  },
 
   // ===================== LATENT DYNAMICS =====================
   {
@@ -179,6 +198,24 @@ export const worldModels: WorldModel[] = [
     sources: [
       { label: 'NeRD arXiv', url: 'https://arxiv.org/abs/2508.15755' },
       { label: 'Project Page', url: 'https://neural-robot-dynamics.github.io/' },
+    ],
+  },
+  {
+    id: 'field_ai_bwm',
+    name: 'Field Foundation Models',
+    developer: 'Field AI',
+    country: 'US',
+    modelType: 'latent-dynamics',
+    description:
+      'Suite of physics-first foundation models built from scratch for embodied AI — explicitly not adapted from LLMs/VLMs. Includes Belief World Model (BWM) for risk-aware predictive reasoning under uncertainty, Dynamics Foundation Model (DFM) for robot dynamics, and Multiagent Foundation Model (MFM) for multi-robot coordination. Runs on-robot at the edge with no cloud or GPS dependency. Deployed on Boston Dynamics Spot in construction environments. $405M raised at $2B valuation, founded by ex-NASA JPL team led by Ali Agha.',
+    backbone: 'Physics-first foundation models (BWM + DFM + MFM)',
+    release: '2024',
+    venue: 'Field AI',
+    availability: 'Commercial (enterprise licensing)',
+    focus: 'Risk-aware autonomy for unstructured real-world environments',
+    sources: [
+      { label: 'Field AI', url: 'https://www.fieldai.com/' },
+      { label: 'Field AI Technology', url: 'https://www.fieldai.com/technology' },
     ],
   },
 
