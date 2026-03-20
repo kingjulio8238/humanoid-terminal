@@ -234,6 +234,11 @@ export const relationships: SupplyRelationship[] = [
   // Neura Robotics (4NE-1)
   { id: 'r390', from: 'nvidia', to: 'neura_4ne1', component: 'Jetson Thor T5000', description: 'Main compute with water cooling, GR00T XX VLA' },
 
+  // Vanar Robots (Gen 1)
+  { id: 'r391', from: 'nvidia', to: 'vanar_robots', component: 'Jetson Platform', description: 'Primary compute for in-house VLA models' },
+  { id: 'r392', from: 'panasonic_energy', to: 'vanar_robots', component: 'Battery Cells', description: 'Commercially sourced Panasonic cells for custom battery pack' },
+  { id: 'r393', from: 'sony_sensors', to: 'vanar_robots', component: 'Image Sensors', description: 'Planned Sony vision sensors for multi-modal perception' },
+
   // Fauna Robotics (Sprout)
   { id: 'r400', from: 'nvidia', to: 'fauna', component: 'Jetson AGX Orin 64GB', description: 'Primary AI/perception compute' },
   { id: 'r401', from: 'stereolabs', to: 'fauna', component: 'ZED2i Stereo Camera', description: 'Stereo RGB-D for visual-inertial odometry and mapping' },
