@@ -206,6 +206,9 @@ export interface CompanyFunding {
   latestValuationM?: number;   // latest valuation in millions USD
   latestValuationNote?: string; // e.g. "IPO target", "analyst est."
   ipoPlans?: string;           // e.g. "STAR Market Q2 2026"
+  ipoRaiseTargetM?: number;    // IPO raise target in millions USD
+  revenue2025M?: number;       // 2025 revenue in millions USD
+  netProfit2025M?: number;     // 2025 net profit in millions USD
   keyInvestors: string[];      // top investor names
   rounds: FundingRound[];
   sources: FundingSourceRef[];

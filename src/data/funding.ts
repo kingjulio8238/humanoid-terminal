@@ -491,10 +491,14 @@ export const companyFunding: CompanyFunding[] = [
     companyId: 'unitree',
     name: 'Unitree',
     country: 'CN',
-    status: 'private',
+    status: 'ipo-filed',
     totalRaisedM: 155,
-    latestValuationM: 1700,
-    ipoPlans: 'STAR Market Q2 2026',
+    latestValuationM: 7000,
+    latestValuationNote: 'pre-IPO target, not finalized',
+    ipoPlans: 'STAR Market — filed Mar 2026, targeting ~$610M raise',
+    ipoRaiseTargetM: 610,
+    revenue2025M: 248,
+    netProfit2025M: 41.8,
     keyInvestors: ['Alibaba', 'Tencent', 'China Mobile', 'Ant Group', 'Meituan'],
     rounds: [
       {
