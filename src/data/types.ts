@@ -221,6 +221,55 @@ export interface InvestorProfile {
   sources: FundingSourceRef[];
 }
 
+// ── Factories ─────────────────────────────────────────────────
+
+export type FactoryStatus = 'operational' | 'under-construction' | 'planned' | 'pre-production' | 'trials';
+
+export type MfgModel = 'in-house' | 'contract' | 'partner' | 'vertically-integrated';
+
+export interface FactorySourceRef {
+  label: string;
+  url: string;
+}
+
+export interface Factory {
+  id: string;
+  name: string;                // e.g. "RoboFab", "BotQ", "Giga Texas Optimus"
+  companyId: string;           // matches Company.id or descriptive id
+  companyName: string;
+  country: Country;
+  location: string;            // e.g. "Salem, OR", "Shanghai"
+  status: FactoryStatus;
+  sizeSqft?: string;           // e.g. "70,000 sqft", "10,000+ sqm"
+  mfgModel: MfgModel;
+  notes?: string;
+  sources: FactorySourceRef[];
+}
+
+export interface CompanyProduction {
+  companyId: string;
+  name: string;
+  country: Country;
+  mfgModel: MfgModel;
+  annualCapacity?: number;     // announced capacity in units/year
+  capacityNote?: string;       // e.g. "by 2028", "target"
+  shipped2025?: number;        // actual 2025 shipments
+  shipped2025Note?: string;    // e.g. "internal use only", "estimate"
+  target2026?: string;         // e.g. "20,000", "scale to 10K/yr"
+  target2027?: string;
+  sources: FactorySourceRef[];
+}
+
+export interface ManufacturingPartner {
+  id: string;
+  name: string;
+  country: Country;
+  type: string;               // e.g. "EMS", "Automotive", "Industrial"
+  partnerCompanyIds: string[];
+  description: string;
+  sources: FactorySourceRef[];
+}
+
 export interface VLAModel {
   id: string;
   name: string;

@@ -3,8 +3,8 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import PLYViewer, { preloadPLY } from './components/PLYViewer';
 import SupplyChainGraph from './components/SupplyChainGraph';
-import { companies, relationships, componentCategories, vlaModels, rewardModels, rewardComparisons, worldModels, vizTools, headDesigns, companyFunding, topInvestors } from './data';
-import type { RewardModelType, WorldModelType, VizToolType, FaceDisplayType, FundingStatus } from './data';
+import { companies, relationships, componentCategories, vlaModels, rewardModels, rewardComparisons, worldModels, vizTools, headDesigns, companyFunding, topInvestors, companyProduction, factoryDirectory, manufacturingPartners } from './data';
+import type { RewardModelType, WorldModelType, VizToolType, FaceDisplayType, FundingStatus, FactoryStatus } from './data';
 import RewardChart from './components/RewardChart';
 import './App.css';
 
@@ -30,6 +30,7 @@ const TABS: { id: string; label: string; group: TabGroup }[] = [
   { id: 'funding', label: 'Funding', group: 'industry' },
   { id: 'geopolitics', label: 'Geopolitics', group: 'industry' },
   { id: 'timeline', label: 'Buildout', group: 'industry' },
+  { id: 'factories', label: 'Factories', group: 'industry' },
   // Hardware
   { id: 'sensors_general', label: 'Sensors', group: 'hardware' },
   { id: 'compute', label: 'Compute', group: 'hardware' },
@@ -56,6 +57,7 @@ const TAB_TO_PATH: Record<string, string> = {
   all_oems: '/oems',
   network: '/network',
   funding: '/industry/funding',
+  factories: '/industry/factories',
   geopolitics: '/industry/geopolitics',
   timeline: '/industry/buildout',
   sensors_general: '/hardware/sensors',
@@ -89,6 +91,7 @@ const TAB_META: Record<string, { title: string; description: string }> = {
   skeleton: { title: 'Humanoid Atlas | Humanoid Robot Supply Chain Map & OEM Database', description: 'The comprehensive humanoid robot industry database. Compare 29+ OEMs, 41+ suppliers, hardware supply chain, VLA models, reward models, world models, and more.' },
   all_oems: { title: 'All Humanoid Robot OEMs | Humanoid Atlas', description: 'Compare 29+ humanoid robot manufacturers worldwide. Detailed specs, shipment data, and side-by-side comparison for Tesla Optimus, Figure, 1X NEO, Unitree, Agility Digit, and more.' },
   funding: { title: 'Humanoid Robot Funding & Valuations | Humanoid Atlas', description: 'Track funding rounds, valuations, and key investors across 25+ humanoid robotics companies. Compare total raised, latest valuations, and investor portfolios.' },
+  factories: { title: 'Humanoid Robot Factories & Production Capacity | Humanoid Atlas', description: 'Compare production capacity, factory locations, and manufacturing targets across 20+ humanoid robot manufacturers. Track the global production ramp.' },
   geopolitics: { title: 'Humanoid Robot Geopolitics — US vs China Supply Chain | Humanoid Atlas', description: 'Geopolitical analysis of the humanoid robot supply chain. Compare US, China, and global supplier dependencies, self-sufficiency scores, and bottleneck exposure.' },
   network: { title: 'Humanoid Robot Supply Chain Network Graph | Humanoid Atlas', description: 'Interactive network visualization of all humanoid robot OEM-supplier relationships. Explore the full supply chain graph.' },
   timeline: { title: 'Humanoid Robot Industry Buildout Timeline | Humanoid Atlas', description: 'Timeline of humanoid robot development milestones, production ramp-ups, and industry buildout.' },
@@ -884,6 +887,7 @@ export default function App() {
   const [vizToolFilter, setVizToolFilter] = useState<'all' | VizToolType>('all');
   const [headDesignFilter, setHeadDesignFilter] = useState<'all' | FaceDisplayType>('all');
   const [fundingStatusFilter, setFundingStatusFilter] = useState<'all' | FundingStatus>('all');
+  const [factoryStatusFilter, setFactoryStatusFilter] = useState<'all' | FactoryStatus>('all');
   const [countryFilter, setCountryFilter] = useState<CountryGroup>(null);
   const [cutCountries, setCutCountries] = useState<Set<string>>(new Set());
   const [cutCompanies, setCutCompanies] = useState<Set<string>>(new Set());
@@ -1096,7 +1100,7 @@ export default function App() {
   );
 
   const chain = useMemo(() => {
-    if (activeTab === 'skeleton' || activeTab === 'all_oems' || activeTab === 'geopolitics' || activeTab === 'funding') return null;
+    if (activeTab === 'skeleton' || activeTab === 'all_oems' || activeTab === 'geopolitics' || activeTab === 'funding' || activeTab === 'factories') return null;
     if (activeTab === 'vlas') return null;
     if (activeTab === 'reward_models') return null;
     if (activeTab === 'world_models') return null;
@@ -1201,6 +1205,17 @@ export default function App() {
       return (b.totalRaisedM ?? 0) - (a.totalRaisedM ?? 0);
     });
   }, [filteredFunding]);
+
+  const filteredFactories = useMemo(() => {
+    if (factoryStatusFilter === 'all') return factoryDirectory;
+    return factoryDirectory.filter((f) => f.status === factoryStatusFilter);
+  }, [factoryStatusFilter]);
+
+  const productionSorted = useMemo(() => {
+    return [...companyProduction]
+      .filter((p) => p.shipped2025 != null || p.annualCapacity != null)
+      .sort((a, b) => (b.annualCapacity ?? 0) - (a.annualCapacity ?? 0));
+  }, []);
 
   // Compute which entities are connected to the focused entity in the chain
   const connectedIds = useMemo(() => {
@@ -1889,7 +1904,7 @@ export default function App() {
         })}
       </nav>
 
-      <main className={activeTab === 'skeleton' ? 'skeleton-view' : activeTab === 'network' ? 'skeleton-view' : activeTab === 'timeline' ? 'geo-view' : activeTab === 'geopolitics' ? 'geo-view' : activeTab === 'funding' ? 'geo-view' : 'component-view'}>
+      <main className={activeTab === 'skeleton' ? 'skeleton-view' : activeTab === 'network' ? 'skeleton-view' : activeTab === 'timeline' ? 'geo-view' : activeTab === 'geopolitics' ? 'geo-view' : activeTab === 'funding' ? 'geo-view' : activeTab === 'factories' ? 'geo-view' : 'component-view'}>
         {/* Skeleton tab */}
         {activeTab === 'skeleton' && (
           <div className="skeleton-center">
@@ -2111,6 +2126,159 @@ export default function App() {
                         })}
                       </div>
                       <p className="funding-investor-card__desc">{inv.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          );
+        })()}
+
+        {/* Factories tab */}
+        {activeTab === 'factories' && (() => {
+          // Shared linear scale — exclude Tesla's 10M aspirational capacity
+          const scaleMax = Math.max(
+            ...productionSorted.map((p) => p.shipped2025 ?? 0),
+            ...productionSorted
+              .filter((p) => (p.annualCapacity ?? 0) <= 100000)
+              .map((p) => p.annualCapacity ?? 0),
+          );
+          const pct = (v: number) => Math.min((v / scaleMax) * 100, 99);
+
+          const getFactoryStatusLabel = (s: FactoryStatus) => {
+            switch (s) {
+              case 'operational': return 'Operational';
+              case 'under-construction': return 'Under Construction';
+              case 'planned': return 'Planned';
+              case 'pre-production': return 'Pre-Production';
+              case 'trials': return 'Trials';
+            }
+          };
+
+          const getMfgModelLabel = (m: string) => {
+            switch (m) {
+              case 'in-house': return 'In-House';
+              case 'contract': return 'Contract';
+              case 'partner': return 'Partner';
+              case 'vertically-integrated': return 'Vert. Integrated';
+              default: return m;
+            }
+          };
+
+          const formatUnits = (n: number) => {
+            if (n >= 1000000) return `${(n / 1000000).toFixed(0)}M/yr`;
+            if (n >= 1000) return `${(n / 1000).toFixed(0)}K/yr`;
+            return `${n}/yr`;
+          };
+
+          return (
+            <div className="geo-content">
+              <section className="geo-section">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Production Capacity</h3>
+                </div>
+                <div className="funding-list">
+                  {productionSorted.map((p) => (
+                    <div
+                      key={p.companyId}
+                      className={`funding-row ${countryFilter && getCountryFilterGroup(p.country) !== countryFilter ? 'geo-dim' : ''}`}
+                      onClick={() => handleSelectCompany(p.companyId)}
+                    >
+                      <span className="funding-row__country">{p.country}</span>
+                      <span className="funding-row__name">{p.name}</span>
+                      <span className="funding-row__status">{getMfgModelLabel(p.mfgModel)}</span>
+                      <div className="funding-row__bars">
+                        {p.shipped2025 != null && (
+                          <div
+                            className="funding-row__raised"
+                            style={{ width: `${pct(p.shipped2025)}%` }}
+                          />
+                        )}
+                        {p.annualCapacity != null && (
+                          <div
+                            className="funding-row__valuation"
+                            style={{ left: `${pct(p.annualCapacity)}%` }}
+                          />
+                        )}
+                      </div>
+                      <div className="funding-row__labels">
+                        {p.shipped2025 != null && (
+                          <span className="funding-row__raised-label">{p.shipped2025.toLocaleString()} shipped</span>
+                        )}
+                        {p.shipped2025 == null && p.shipped2025Note && (
+                          <span className="funding-row__raised-label">{p.shipped2025Note}</span>
+                        )}
+                        {p.annualCapacity != null && (
+                          <span className="funding-row__val-label">{formatUnits(p.annualCapacity)} capacity{p.capacityNote ? '*' : ''}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="funding-legend">
+                  <span className="funding-legend__item"><span className="funding-legend__bar funding-legend__bar--raised" /> 2025 Shipped</span>
+                  <span className="funding-legend__item"><span className="funding-legend__bar funding-legend__bar--val" /> Capacity</span>
+                </div>
+                <div className="funding-footnote">* see capacity notes in data</div>
+              </section>
+
+              <section className="geo-section">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Factory Directory</h3>
+                  <div className="vla-filters">
+                    <button className={`country-pill ${factoryStatusFilter === 'all' ? 'country-pill--active' : ''}`} onClick={() => setFactoryStatusFilter('all')}>All</button>
+                    <button className={`country-pill ${factoryStatusFilter === 'operational' ? 'country-pill--active' : ''}`} onClick={() => setFactoryStatusFilter(factoryStatusFilter === 'operational' ? 'all' : 'operational')}>Operational</button>
+                    <button className={`country-pill ${factoryStatusFilter === 'under-construction' ? 'country-pill--active' : ''}`} onClick={() => setFactoryStatusFilter(factoryStatusFilter === 'under-construction' ? 'all' : 'under-construction')}>Under Construction</button>
+                    <button className={`country-pill ${factoryStatusFilter === 'planned' ? 'country-pill--active' : ''}`} onClick={() => setFactoryStatusFilter(factoryStatusFilter === 'planned' ? 'all' : 'planned')}>Planned</button>
+                    <button className={`country-pill ${factoryStatusFilter === 'pre-production' ? 'country-pill--active' : ''}`} onClick={() => setFactoryStatusFilter(factoryStatusFilter === 'pre-production' ? 'all' : 'pre-production')}>Pre-Production</button>
+                  </div>
+                </div>
+                <div className="chain-flow">
+                  <div className="chain-tier">
+                    <div className="chain-tier-label">Factories</div>
+                    {filteredFactories.map((f) => (
+                      <button
+                        key={f.id}
+                        className={`chain-entity ${countryFilter && getCountryFilterGroup(f.country) !== countryFilter ? 'geo-dim' : ''}`}
+                        onClick={() => handleSelectCompany(f.companyId)}
+                      >
+                        <span className="chain-name">{f.name}</span>
+                        <span className="chain-country">{f.country}</span>
+                        <span className="chain-share">
+                          {f.companyName} · {f.location} · {getFactoryStatusLabel(f.status)}{f.sizeSqft ? ` · ${f.sizeSqft}` : ''}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section className="geo-section">
+                <div className="supply-chain__header">
+                  <h3 className="section-title">Manufacturing Partners</h3>
+                </div>
+                <div className="funding-investors">
+                  {manufacturingPartners.map((mp) => (
+                    <div key={mp.id} className="funding-investor-card">
+                      <div className="funding-investor-card__header">
+                        <span className="funding-investor-card__name">{mp.name}</span>
+                        <span className="funding-investor-card__meta">{mp.country} / {mp.type}</span>
+                      </div>
+                      <div className="funding-investor-card__portfolio">
+                        {mp.partnerCompanyIds.map((cid) => {
+                          const cp = companyProduction.find((p) => p.companyId === cid);
+                          return (
+                            <button
+                              key={cid}
+                              className="funding-investor-card__company"
+                              onClick={() => handleSelectCompany(cid)}
+                            >
+                              {cp?.name || cid}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="funding-investor-card__desc">{mp.description}</p>
                     </div>
                   ))}
                 </div>

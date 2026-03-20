@@ -20,7 +20,7 @@ const VALID_OEM_IDS = new Set([
   'unitree', 'booster', 'agibot', 'xpeng', 'engineai', 'ubtech', 'dexmate',
   'fourier', 'kepler', 'sanctuary_ai', 'noetix', 'dobot', 'limx', 'pudu',
   'astribot', 'magiclab', 'xiaomi', 'foundation_robotics', 'neura_4ne1', 'robotera',
-  'fauna',
+  'fauna', 'vanar_robots',
 ]);
 
 function getClientIP(req: VercelRequest): string {
