@@ -370,7 +370,7 @@ export const companies: Company[] = [
       totalDOF: '22',
       operatingTime: '30-50 min (2Ah) / ~80 min (5Ah); hot-swappable',
       payloadCapacity: 'Not disclosed',
-      endEffector: 'No hands (base); optional grippers or RH56DFX dexterous hand',
+      endEffector: 'No hands (base); optional grippers',
       tactileSensing: true,
       locomotion: 'Leg (bipedal)',
       materials: 'Plastic and metal composite',
@@ -1340,7 +1340,7 @@ export const companies: Company[] = [
   // === Chinese OEMs (national platforms) ===
   {
     id: 'qinglong',
-    name: 'Qinglong (OpenLoong)',
+    name: 'OpenLoong (Qinglong)',
     type: 'oem',
     country: 'CN',
     description: 'China\'s national open-source humanoid robot reference platform, developed by the Humanoid Robots (Shanghai) Innovation Center — a government-backed consortium established by MIIT in May 2024 with 1 billion RMB registered capital. Qinglong ("Azure Dragon") is designed as an open-source full-stack platform (hardware + software + AI) to accelerate the entire Chinese humanoid ecosystem, similar in concept to a national lab. Partners include Fourier Intelligence and AGIBot. The open-source stack runs on GitHub (OpenLoong) co-managed with the OpenAtom Foundation. V3.0 (Aug 2025) expanded to 60 DOF with wheeled and lightweight variants.',
