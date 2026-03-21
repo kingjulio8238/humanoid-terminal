@@ -7,12 +7,13 @@ import { companies, relationships, componentCategories, vlaModels, rewardModels,
 import type { RewardModelType, WorldModelType, VizToolType, FaceDisplayType, FundingStatus, FactoryStatus, SimPlatformType, SafetyComplianceLevel, OemSafetyProfile } from './data';
 import RewardChart from './components/RewardChart';
 import ApiDocs from './components/ApiDocs';
+import CliDocs from './components/CliDocs';
 import './App.css';
 
 // Start fetching the skeleton model immediately on module load
 preloadPLY('/models/skeleton.ply');
 
-type TabGroup = 'overview' | 'industry' | 'hardware' | 'software' | 'hri' | 'api';
+type TabGroup = 'overview' | 'industry' | 'hardware' | 'software' | 'hri' | 'cli' | 'api';
 
 const TAB_GROUPS: { id: TabGroup; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -20,6 +21,7 @@ const TAB_GROUPS: { id: TabGroup; label: string }[] = [
   { id: 'hardware', label: 'Hardware' },
   { id: 'software', label: 'Software' },
   { id: 'hri', label: 'HRI' },
+  { id: 'cli', label: 'CLI' },
   { id: 'api', label: 'API' },
 ];
 
@@ -29,8 +31,8 @@ const TABS: { id: string; label: string; group: TabGroup }[] = [
   { id: 'all_oems', label: 'All OEMs', group: 'overview' },
   { id: 'network', label: 'Network', group: 'overview' },
   // Industry
-  { id: 'funding', label: 'Funding', group: 'industry' },
   { id: 'geopolitics', label: 'Geopolitics', group: 'industry' },
+  { id: 'funding', label: 'Funding', group: 'industry' },
   { id: 'timeline', label: 'Buildout', group: 'industry' },
   { id: 'factories', label: 'Factories', group: 'industry' },
   // Hardware
@@ -53,6 +55,10 @@ const TABS: { id: string; label: string; group: TabGroup }[] = [
   // HRI
   { id: 'displays', label: 'Displays', group: 'hri' },
   { id: 'safety_standards', label: 'Safety & Standards', group: 'hri' },
+  // CLI
+  { id: 'cli_install', label: 'Install', group: 'cli' },
+  { id: 'cli_commands', label: 'Commands', group: 'cli' },
+  { id: 'cli_examples', label: 'Examples', group: 'cli' },
   // API
   { id: 'api_getting_started', label: 'Getting Started', group: 'api' },
   { id: 'api_companies', label: 'Companies', group: 'api' },
@@ -89,6 +95,9 @@ const TAB_TO_PATH: Record<string, string> = {
   viz_tools: '/software/viz-tools',
   displays: '/hri/displays',
   safety_standards: '/hri/safety-standards',
+  cli_install: '/cli/install',
+  cli_commands: '/cli/commands',
+  cli_examples: '/cli/examples',
   api_getting_started: '/api/getting-started',
   api_companies: '/api/companies',
   api_supply_chain: '/api/supply-chain',
@@ -133,6 +142,9 @@ const TAB_META: Record<string, { title: string; description: string }> = {
   viz_tools: { title: 'Robotics Visualization Tools — Foxglove, Rerun & More | Humanoid Atlas', description: 'Compare 10 robotics visualization tools with capability matrix. Foxglove, Rerun, RViz2, PlotJuggler, and more.' },
   safety_standards: { title: 'Humanoid Robot Safety Standards & Compliance | Humanoid Atlas', description: 'Track safety standards (ISO 25785-1, ANSI R15.06, EU AI Act), OEM compliance profiles, and safety design features across 12 humanoid robotics companies.' },
   displays: { title: 'Humanoid Robot Displays & Head Designs | Humanoid Atlas', description: 'Compare 17 humanoid robot head/face designs. OLED screens, status displays, LED indicators, cameras, sensors, and interaction design.' },
+  cli_install: { title: 'Atlas CLI Installation | Humanoid Atlas', description: 'Install the Humanoid Atlas CLI tool. Query the humanoid robot supply chain from your terminal.' },
+  cli_commands: { title: 'Atlas CLI Command Reference | Humanoid Atlas', description: 'Full command reference for the Atlas CLI. Companies, supply chain, bottlenecks, scenarios, AI models, and more.' },
+  cli_examples: { title: 'Atlas CLI Examples & Workflows | Humanoid Atlas', description: 'Real-world CLI workflows for querying the humanoid robot supply chain, running scenarios, and piping data to coding agents.' },
   api_getting_started: { title: 'API Getting Started — Authentication & Base URL | Humanoid Atlas', description: 'Get started with the Humanoid Atlas API. Base URL, authentication, response format, and system health endpoints.' },
   api_companies: { title: 'API Companies Endpoints | Humanoid Atlas', description: 'List, search, and retrieve detailed company profiles for OEMs and suppliers via the Humanoid Atlas API.' },
   api_supply_chain: { title: 'API Supply Chain Endpoints | Humanoid Atlas', description: 'Query supply chain relationships, traverse dependency graphs, analyze bottlenecks, and run what-if scenarios.' },
@@ -2053,7 +2065,7 @@ export default function App() {
         <div className="tab-group-nav">
           {TAB_GROUPS.map((g) => (
             <Fragment key={g.id}>
-              {g.id === 'api' && <div className="filter-bar__separator" />}
+              {g.id === 'cli' && <div className="filter-bar__separator" />}
               <button
                 className={`tab-group-pill ${activeTabGroup === g.id ? 'tab-group-pill--active' : ''}`}
                 onClick={() => {
@@ -2080,7 +2092,7 @@ export default function App() {
         })}
       </nav>
 
-      <main className={activeTabGroup === 'api' ? 'component-view' : activeTab === 'skeleton' ? 'skeleton-view' : activeTab === 'network' ? 'skeleton-view' : activeTab === 'timeline' ? 'geo-view' : activeTab === 'geopolitics' ? 'geo-view' : activeTab === 'funding' ? 'geo-view' : activeTab === 'factories' ? 'geo-view' : 'component-view'}>
+      <main className={activeTabGroup === 'cli' ? 'component-view' : activeTabGroup === 'api' ? 'component-view' : activeTab === 'skeleton' ? 'skeleton-view' : activeTab === 'network' ? 'skeleton-view' : activeTab === 'timeline' ? 'geo-view' : activeTab === 'geopolitics' ? 'geo-view' : activeTab === 'funding' ? 'geo-view' : activeTab === 'factories' ? 'geo-view' : 'component-view'}>
         {/* Skeleton tab */}
         {activeTab === 'skeleton' && (
           <div className="skeleton-center">
@@ -3857,6 +3869,10 @@ export default function App() {
             )}
 
           </>
+        )}
+
+        {activeTabGroup === 'cli' && (
+          <CliDocs activeSubTab={activeTab} />
         )}
 
         {activeTabGroup === 'api' && (
