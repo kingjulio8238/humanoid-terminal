@@ -344,6 +344,16 @@ interface Workflow {
 
 const WORKFLOWS: Workflow[] = [
   {
+    title: 'Use with coding agents (Claude Code, Cursor, etc.)',
+    description: 'Install the CLI globally and any coding agent with shell access can query the full dataset. Use --json for structured output agents can parse and reason over. Just prompt naturally and the agent will chain commands automatically.',
+    steps: [
+      '# Ask your agent: "Compare Tesla and Figure\'s supply chains and tell me where they share suppliers"\n# The agent will run:\natlas company tesla --json\natlas company figure --json\natlas relationships --to=tesla --json\natlas relationships --to=figure --json',
+      '# Ask: "Which OEMs are most exposed to reducer bottlenecks?"\n# The agent will run:\natlas bottlenecks --json\natlas companies --type=oem --json',
+      '# Ask: "What happens if NVIDIA goes offline?"\n# The agent will run:\natlas scenario --mode=supplier-loss --offline=nvidia --json',
+      '# Export data for analysis:\natlas companies --type=oem --json > oems.json\natlas funding --sort=valuation --json > funding.json',
+    ],
+  },
+  {
     title: 'Find all US OEMs and their motor suppliers',
     description: 'List US OEMs, then query the supply chain for motor relationships.',
     steps: [
@@ -366,15 +376,6 @@ const WORKFLOWS: Workflow[] = [
     steps: [
       'atlas compare tesla figure',
       'atlas compare tesla figure --json | jq .data.companies',
-    ],
-  },
-  {
-    title: 'Use with coding agents',
-    description: 'Pipe JSON output into your agent workflow.',
-    steps: [
-      'atlas companies --type=oem --json > oems.json',
-      'atlas company tesla --json | jq .company.robotSpecs',
-      'atlas query "cheapest humanoid robot" --json',
     ],
   },
 ];
